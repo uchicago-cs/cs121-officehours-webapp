@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{# Load the tag library #}
+{% load bootstrap4 %}
+{% load static %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'uchicago-cs/style.css' %}">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
+{% block extra_head %}{% endblock %}
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CS 121 Office Hours</title>
+</head>
+
+<body>
+
+
+
+<nav class="navbar navbar-expand-sm navbar-dark bg-faded">
+  <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="{% url 'index' %}">CS 121 Office Hours</a>
+      </div>
+
+
+  <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+    <span class="navbar-toggler-icon"></span>
+  </button>-->
+
+  <div class="collapse navbar-collapse" id="collapsibleNavbar">
+
+    <ul class="nav navbar-nav mr-auto">
+        {% if user.is_authenticated %}
+
+      {% if user.is_staff %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'course-offerings' %}">Courses</a>
+      </li>
+      {% endif %}
+
+        {% endif %}
+    </ul>
+
+    <ul class="nav navbar-nav">
+        {% if user.is_authenticated %}
+        <li class="nav-item dropdown">
+
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="fas fa-user"></span> {{ user }}
+              {% if user.is_impersonate %} <br/>(Impersonating) {% endif %}
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          {% if user.student %}
+              <a class="dropdown-item" href="{% url 'profile' %}">My profile</a>
+          {% endif %}
+            <div class="dropdown-divider"></div>
+            {% if user.is_impersonate %}
+                <a class="dropdown-item" href="{% url 'impersonate-stop' %}">Stop impersonating</a>
+            {% endif %}
+            <a class="dropdown-item" href="{% url 'logout' %}">Log out</a>
+          </div>
+        </li>
+        {% else %}
+        <li class="nav-item">
+        <span class="glyphicon glyphicon-user"></span>
+        <a class="nav-link" href="#">Login</a>
+      </li>
+        {% endif %}
+    </ul>
+
+  </div>
+  </div>
+
+</nav>
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+
+
+<div class="container">
+{% bootstrap_messages %}
+<br/>
+        {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

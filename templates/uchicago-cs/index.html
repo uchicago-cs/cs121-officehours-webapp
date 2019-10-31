@@ -1,0 +1,26 @@
+{% extends "uchicago-cs/base.html" %}
+{% load bootstrap4 %}
+{% load mathfilters %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+    <p>
+    <p>Logged in as {{ user.username }}</p>
+    </p>
+
+
+{% else %}
+    <p>
+    Welcome!
+    </p>
+    <p>
+    <a class="btn btn-primary" href="{% url 'social:begin' 'google-oauth2' %}">
+        Login
+    </a>
+    </p>
+{% endif %}
+{% endblock %}
