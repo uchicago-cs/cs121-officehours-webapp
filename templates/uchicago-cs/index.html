@@ -12,20 +12,11 @@
     <p>Logged in as {{ user.username }}</p>
     </p>
 
-<form action="{% url 'social:disconnect' 'google-oauth2' %}" method="post">
-    {% csrf_token %}
-    <button type="submit">Logout</button>
-</form>
-
 
 {% else %}
     <p>
     Welcome!
     </p>
-    <p>
-    <a class="btn btn-primary" href="{% url 'social:begin' 'google-oauth2' %}">
-        Login
-    </a>
-    </p>
+
 {% endif %}
 {% endblock %}

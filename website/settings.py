@@ -69,13 +69,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY', 'Plea
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET', 'Please set SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET environment variable!')
 SOCIAL_AUTH_GOOGLE_OAUTH2_WHITELISTED_DOMAINS = ["uchicago.edu"]
 
-SOCIAL_AUTH_DISCONNECT_PIPELINE = (
-    'social.pipeline.disconnect.allowed_to_disconnect',
-    'social.pipeline.disconnect.get_entries',
-    'social.pipeline.disconnect.revoke_tokens',
-    'social.pipeline.disconnect.disconnect',
-)
-
 SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = { 'prompt': 'select_account' }
 
 LOGIN_URL = '/auth/login/google-oauth2/'
