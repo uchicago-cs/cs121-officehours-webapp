@@ -25,7 +25,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'Please set SECRET_KEY environment variable
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["cs121-officehours.herokuapp.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "cs121-webapp.herokuapp.com"]
 
 
 # Application definition
@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django_tables2',
     'django_filters',
     'impersonate',
-    'mathfilters'
+    'mathfilters',
+    'social_django'
 ]
 
 MIDDLEWARE = [
@@ -55,12 +56,27 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY', 'Please set SOCIAL_AUTH_GOOGLE_OAUTH2_KEY environment variable!')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET', 'Please set SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET environment variable!')
+
+LOGIN_URL = '/auth/login/google-oauth2/'
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 ROOT_URLCONF = 'website.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -125,3 +141,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static")
+]
