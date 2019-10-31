@@ -12,7 +12,7 @@
     <p>Logged in as {{ user.username }}</p>
     </p>
 
-<form action="{% url 'social:disconnect_individual' 'google-oauth2' google.id %}" method="POST">
+<form action="{% url 'social:disconnect' 'google-oauth2' %}" method="POST">
     <button type="submit">Logout</button>
 </form>
 
