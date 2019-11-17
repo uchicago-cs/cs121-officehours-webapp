@@ -7,7 +7,7 @@ from django.http import Http404
 from django.contrib import messages
 import django_tables2
 
-from officehours.models import CourseOffering, Request
+from officehours.models import CourseOffering, Request, Slot
 from officehours.forms import RequestForm
 from officehours.tables import RequestTable
 from django.utils import timezone
@@ -28,6 +28,9 @@ def my_request(request, course_offering_slug):
     if request.GET.get("request_created"):
         messages.success(request, 'Your request has been created.')
 
+    if request.GET.get("request_cancelled"):
+        messages.error(request, 'Your request has been cancelled. You can make a new request below.')
+
     course_offering = get_object_or_404(CourseOffering, url_slug=course_offering_slug)
     user_is_server = course_offering.is_server(request.user)
 
@@ -37,18 +40,7 @@ def my_request(request, course_offering_slug):
 
     active_req = request.user.get_active_request(course_offering)
 
-    # Check if this is a POST modifying an existing request
-    # (this view only covers simple modifications like cancelling
-    # a request, etc.) Full editing of a request happens in request_detail.
-    if request.POST and active_req is not None:
-        cancel = request.POST.get("cancel-request")
-
-        if cancel == "yes":
-            active_req.cancel()
-            messages.error(request, 'Your request has been cancelled. You can make a new request below.')
-            active_req = None
-
-    elif request.POST and active_req is None:
+    if request.POST and active_req is None:
         # Check if this is the creation of a new request
 
         form = RequestForm(request.POST)
@@ -127,6 +119,32 @@ def request_detail(request, course_offering_slug, request_id):
 
     context["req"] = req
 
+    # Check if this is a POST making a specific modification
+    if request.POST:
+        update_type = request.POST.get("update-type")
+        next_page = request.POST.get("next-page")
+
+        if update_type == "cancel":
+            req.cancel()
+            return redirect(next_page + "?request_cancelled=yes")
+        elif update_type == "schedule" and user_is_server:
+            slot_pk = request.POST.get("slot")
+
+            try:
+                slot = req.slots.get(pk=slot_pk)
+                req.schedule(slot)
+                return redirect(next_page + "?request_scheduled=yes")
+            except Slot.DoesNotExist:
+                return redirect(next_page + "?request_scheduled=no")
+        elif update_type == "start-service" and user_is_server:
+            req.start_service(server=request.user)
+            return redirect(next_page + "?request_started=yes")
+        elif update_type == "complete-service" and user_is_server:
+            req.complete_service()
+            return redirect(next_page + "?request_completed=yes")
+
+
+
     initial = {}
     form = RequestForm(request.POST or None, initial=initial, instance=req)
 
@@ -167,7 +185,6 @@ def requests_today(request, course_offering_slug):
     context["course_offering"] = course_offering
     context["user_is_server"] = user_is_server
 
-
     force_date = request.GET.get('force_date')
 
     if force_date is not None:
@@ -176,11 +193,18 @@ def requests_today(request, course_offering_slug):
         except ValueError:
             raise ValueError("Not a valid date: {}".format(force_date))
     else:
-        day = datetime.now().date()
+        day = timezone.localtime(timezone.now()).date()
 
-    pending_requests = course_offering.request_set.filter(state=Request.STATE_PENDING)
-    today_pending = pending_requests.filter(date=day)
-    context["today_pending"] = today_pending
+    current_slot = Slot.get_current_slot(course_offering)
+
+    today_requests = course_offering.request_set.filter(date=day)
+
+    context["requests_pending_today"] = today_requests.filter(state=Request.STATE_PENDING)
+    context["requests_pending_now"] = today_requests.filter(state=Request.STATE_PENDING, slots__in=[current_slot])
+
+    context["requests_scheduled"] = today_requests.filter(state=Request.STATE_SCHEDULED, actual_slot__isnull=False)
+    context["requests_inprogress"] = today_requests.filter(state=Request.STATE_INPROGRESS)
+    context["requests_completed"] = today_requests.filter(state=Request.STATE_COMPLETED)
 
     return render(request, 'uchicago-cs/requests-today.html', context)
 

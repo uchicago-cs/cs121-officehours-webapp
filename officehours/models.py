@@ -129,6 +129,22 @@ class Slot(models.Model):
         end = self.end_time.strftime("%I:%M %p")
         return "{} - {}".format(start, end)
 
+    @staticmethod
+    def get_current_slot(course_offering):
+        now = timezone.localtime(timezone.now())
+
+        slots = Slot.objects.filter(course_offering = course_offering,
+                                    date=now.date(),
+                                    start_time__lte = now.time(),
+                                    end_time__gt = now.time())
+
+        assert len(slots) <= 1
+
+        if len(slots) == 1:
+            return slots[0]
+        else:
+            return None
+
 
 class Request(models.Model):
     STATE_PENDING = 10
@@ -147,7 +163,7 @@ class Request(models.Model):
 
     course_offering = models.ForeignKey(CourseOffering, on_delete=models.CASCADE)
     student = models.ForeignKey(User, on_delete=models.CASCADE)
-    additional_students = models.ManyToManyField(User, related_name="additional_requests")
+    additional_students = models.ManyToManyField(User, related_name="additional_requests", blank=True, null=True)
     server = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="assigned_requests")
     date = models.DateField()
 
@@ -191,12 +207,25 @@ class Request(models.Model):
 
         return active_req is not None and active_req.request == self
 
+    @property
+    def is_pending(self):
+        return self.state == Request.STATE_PENDING
+
+    @property
+    def is_scheduled(self):
+        return self.state == Request.STATE_SCHEDULED
+
+    @property
+    def is_inprogress(self):
+        return self.state == Request.STATE_INPROGRESS
+
+
     def get_state_class(self):
         if self.state in (Request.STATE_PENDING,):
             return "btn-warning"
         elif self.state in (Request.STATE_SCHEDULED, Request.STATE_INPROGRESS):
             return "btn-success"
-        elif self.state in (Request.COMPLETED,):
+        elif self.state in (Request.STATE_COMPLETED,):
             return "btn-info"
         elif self.state in (Request.STATE_NOSHOW, Request.STATE_COULDNOTSEE, Request.STATE_CANCELLED, Request.STATE_INVALID):
             return "btn-danger"
@@ -235,6 +264,21 @@ class Request(models.Model):
 
     def cancel(self):
         self.state = Request.STATE_CANCELLED
+        self.make_inactive()
+        self.save()
+
+    def schedule(self, slot):
+        self.state = Request.STATE_SCHEDULED
+        self.actual_slot = slot
+        self.save()
+
+    def start_service(self, server):
+        self.state = Request.STATE_INPROGRESS
+        self.server = server
+        self.save()
+
+    def complete_service(self):
+        self.state = Request.STATE_COMPLETED
         self.make_inactive()
         self.save()
 

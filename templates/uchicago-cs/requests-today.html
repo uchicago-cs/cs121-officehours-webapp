@@ -1,82 +1,31 @@
 {% extends "uchicago-cs/base.html" %}
 {% load bootstrap4 %}
-{% load render_table from django_tables2 %}
 
 {% block content %}
 
-    <h2>Requests</h2>
+    <h2>Today's Requests</h2>
 
 <ul class="nav nav-tabs">
-  <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#now">Pending Now</a></li>
-  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#today">Pending Today</a></li>
-  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#scheduled">Scheduled</a></li>
-  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#in-progress">In Progress</a></li>
-  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#completed">Completed</a></li>
+  <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#now">Pending Now ({{  requests_pending_now.count }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#today">Pending Today ({{  requests_pending_today.count }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#scheduled">Scheduled ({{  requests_scheduled.count }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#in-progress">In Progress ({{  requests_inprogress.count }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#completed">Completed ({{  requests_completed.count }})</a></li>
 </ul>
 
 <div class="tab-content">
-  <div id="now" class="tab-pane fade show active">
-  <div id="accordion">
-    {% for req in today_pending %}
-  <div class="card">
-    <div class="card-header" id="today-{{req.pk}}-heading">
-      <h5 class="mb-0">
-        <button class="btn btn-link" data-toggle="collapse" data-target="#today-{{ req.pk }}-collapse" aria-expanded="true" aria-controls="collapseOne">
-         {{req.get_students_display}} ({{ req.get_type_display }} request)
-        </button>
-      </h5>
-    </div>
 
-    <div id="today-{{ req.pk }}-collapse" class="collapse" aria-labelledby="today-{{req.pk}}-heading" data-parent="#accordion">
-      <div class="card-body">
-                <p>
-              <button type="button" class ="{{req.get_state_class}}" disabled>{{req.get_state_display}}</button>
-          </p>
+{% include "./requests-tab.html" with requests=requests_pending_now tab_id="now" tab_active=True %}
 
-          <h4>Slots:</h4>
-          <ul>
-             {% for slot in req.slots.all %}
-                 <li>{{ slot }}</li>
-             {% endfor %}
-         </ul>
-          <h4>Description:</h4>
-      <div class="form-group">
-    <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" readonly>{{ req.description }}</textarea>
-  </div>
+{% include "./requests-tab.html" with requests=requests_pending_today tab_id="today" %}
 
+{% include "./requests-tab.html" with requests=requests_scheduled tab_id="scheduled" %}
 
-          <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="scheduleform" method="post" class="form">
-         {% csrf_token %}
-         <input type="hidden" name="schedule-request" id="schedule-request"/>
-         {% buttons %}
-         <button type="submit" class="btn btn-primary">
-        Schedule
-        </button>
-         {% endbuttons %}
-         </form>
+{% include "./requests-tab.html" with requests=requests_inprogress tab_id="in-progress" %}
 
-      </div>
-    </div>
-  </div>
-    {% endfor %}
-  </div>
-  </div>
-  <div id="today" class="tab-pane fade">
-      <p></p>
-  </div>
-  <div id="scheduled" class="tab-pane fade">
-    <p></p>
-  </div>
-  <div id="in-progress" class="tab-pane fade">
-    <p></p>
-  </div>
-  <div id="completed" class="tab-pane fade">
-    <p></p>
-  </div>
+{% include "./requests-tab.html" with requests=requests_completed tab_id="completed" %}
+
 </div>
-
-
-
 
 
 {% endblock %}

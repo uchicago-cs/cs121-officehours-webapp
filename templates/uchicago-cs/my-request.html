@@ -6,7 +6,6 @@
 <script>
 $(document).ready(function(){
     $('#cancel').click(function(){
-        $('#cancel-request').val("yes")
         $('#cancelform').submit();
     });
 
@@ -50,6 +49,7 @@ $(document).ready(function(){
               <button type="button" class ="{{active_req.get_state_class}}" disabled>{{active_req.get_state_display}}</button>
           </p>
 
+     {% if active_req.is_pending %}
           <p>
               You requested the following times:
           </p>
@@ -59,15 +59,29 @@ $(document).ready(function(){
                  <li>{{ slot }}</li>
              {% endfor %}
          </ul>
+     {% endif %}
 
-         <form action="{% url 'my-request' active_req.course_offering.url_slug %}" id="cancelform" method="post" class="form">
+     {% if active_req.is_scheduled or active_req.is_inprogress %}
+          <p>
+              You have been scheduled for <b>{{ active_req.actual_slot.interval }}</b>.<br/>
+              Please go to <em>{{ active_req.actual_slot.room }}</em> at that time.
+          </p>
+
+     {% endif %}
+
+{% if active_req.is_pending or active_req.is_scheduled %}
+         <form action="{%url 'request-detail' active_req.course_offering.url_slug active_req.pk %}" id="cancelform" method="post" class="form">
          {% csrf_token %}
-         <input type="hidden" name="cancel-request" id="cancel-request"/>
+         <input type="hidden" name="update-type" id="update-type" value="cancel"/>
+         <input type="hidden" name="next-page" id="next-page" value="{% url 'my-request' active_req.course_offering.url_slug %}"/>
          {% buttons %}
+         {% if active_req.is_pending %}
          <a href="{% url 'request-detail' active_req.course_offering.url_slug active_req.pk %}" class="btn btn-primary" role="button">Edit your request</a>
+         {% endif %}
          <input type="button" value="Cancel Request" id="cancelBtn" data-toggle="modal" data-target="#confirm-cancel" class="btn btn-danger" />
          {% endbuttons %}
          </form>
+{% endif %}
 
      </div>
     </div>

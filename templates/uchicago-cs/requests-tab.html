@@ -1,0 +1,95 @@
+{% load bootstrap4 %}
+
+{% if tab_active %}
+  <div id="{{tab_id}}" class="tab-pane fade show active">
+{% else %}
+  <div id="{{tab_id}}" class="tab-pane fade">
+{% endif %}
+  <div id="accordion">
+    {% for req in requests %}
+  <div class="card">
+    <div class="card-header" id="{{tab_id}}-{{req.pk}}-heading">
+      <h5 class="mb-0">
+        <button class="btn btn-link" data-toggle="collapse" data-target="#{{tab_id}}-{{ req.pk }}-collapse" aria-expanded="true" aria-controls="collapseOne">
+         {{req.get_students_display}} ({{ req.get_type_display }} request)
+        </button>
+      </h5>
+    </div>
+
+    <div id="{{tab_id}}-{{ req.pk }}-collapse" class="collapse" aria-labelledby="{{tab_id}}-{{req.pk}}-heading" data-parent="#accordion">
+      <div class="card-body">
+                <p>
+              <button type="button" class ="{{req.get_state_class}}" disabled>{{req.get_state_display}}</button>
+          </p>
+
+      {% if req.is_pending %}
+          <h4>Slots:</h4>
+          <ul>
+             {% for slot in req.slots.all %}
+                 <li>{{ slot }}</li>
+             {% endfor %}
+         </ul>
+     {% endif %}
+
+     {% if req.is_scheduled or req.is_inprogress %}
+          <p>
+             Scheduled for <b>{{ req.actual_slot.interval }}</b>.
+          </p>
+
+     {% endif %}
+
+          <h4>Description:</h4>
+      <div class="form-group">
+    <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" readonly>{{ req.description }}</textarea>
+  </div>
+
+
+      {% if req.is_pending %}
+          <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="scheduleform" method="post" class="form-inline">
+         {% csrf_token %}
+         <input type="hidden" name="update-type" value="schedule"/>
+         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
+
+         <select name="slot" class="form-control">
+             {% for slot in req.slots.all %}
+                 <option value="{{slot.pk}}">{{ slot }}</option>
+             {% endfor %}
+         </select>
+         {% buttons %}
+         <button type="submit" class="btn btn-primary">
+        Schedule
+        </button>
+         {% endbuttons %}
+         </form>
+      {% endif %}
+
+     {% if req.is_scheduled or req.is_inprogress %}
+          <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="scheduleform" method="post" class="form-inline">
+         {% csrf_token %}
+          {% if req.is_scheduled %}
+         <input type="hidden" name="update-type" value="start-service"/>
+          {% elif req.is_inprogress %}
+         <input type="hidden" name="update-type" value="complete-service"/>
+          {% endif %}
+
+         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
+
+         {% buttons %}
+         <button type="submit" class="btn btn-primary">
+          {% if req.is_scheduled %}
+         Start Service
+          {% elif req.is_inprogress %}
+         End Service
+          {% endif %}
+        </button>
+         {% endbuttons %}
+         </form>
+
+     {% endif %}
+
+      </div>
+    </div>
+  </div>
+    {% endfor %}
+  </div>
+  </div>
