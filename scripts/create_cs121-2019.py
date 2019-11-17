@@ -8,7 +8,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "website.settings")
 django.setup()
 
 
-import webapp.models as models
+import officehours.models as models
 
 aut19, created = models.Quarter.objects.get_or_create(ais_num = 2198,
                                                       year = 2019,

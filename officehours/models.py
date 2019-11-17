@@ -1,6 +1,23 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
+
+
+class User(AbstractUser):
+    active_requests = models.ManyToManyField("CourseOffering",
+                                             through="ActiveRequest",
+                                             blank=True)
+
+    def get_active_request(self, course_offering):
+        try:
+            active_req = ActiveRequest.objects.get(course_offering=course_offering,
+                                                   user=self)
+            req = active_req.request
+        except ActiveRequest.DoesNotExist:
+            req = None
+
+        return req
 
 
 class Quarter(models.Model):
@@ -73,15 +90,26 @@ class CourseOffering(models.Model):
     def name(self):
         return self.course.name
 
+    @property
+    def catalog(self):
+        return "{} {}".format(self.subject, self.catalog_code)
+
+    @property
+    def catalog_quarter(self):
+        return "{} ({})".format(self.catalog, self.quarter)
+
     def get_active_request(self, user):
-        reqs = self.request_set.filter(students = user, state__in = Request.ACTIVE_STATES)
+        try:
+            active_req = ActiveRequest.objects.get(course_offering=self,
+                                                   user=user)
+            req = active_req.request
+        except ActiveRequest.DoesNotExist:
+            req = None
 
-        assert len(reqs) <= 1
+        return req
 
-        if len(reqs) == 0:
-            return None
-        else:
-            return reqs[0]
+    def is_server(self, user):
+        return self.servers.filter(pk = user.pk).exists()
 
 
 class Slot(models.Model):
@@ -101,6 +129,7 @@ class Slot(models.Model):
         end = self.end_time.strftime("%I:%M %p")
         return "{} - {}".format(start, end)
 
+
 class Request(models.Model):
     STATE_PENDING = 10
     STATE_SCHEDULED = 20
@@ -114,16 +143,18 @@ class Request(models.Model):
     ACTIVE_STATES = (STATE_PENDING, STATE_SCHEDULED, STATE_INPROGRESS)
 
     TYPE_REGULAR = 10
-    TYPE_EXPRESS = 20
+    TYPE_QUICK = 20
 
     course_offering = models.ForeignKey(CourseOffering, on_delete=models.CASCADE)
-    students = models.ManyToManyField(User, related_name="requests")
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    additional_students = models.ManyToManyField(User, related_name="additional_requests")
     server = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="assigned_requests")
     date = models.DateField()
 
     slots = models.ManyToManyField(Slot)
     actual_slot = models.ForeignKey(Slot, on_delete=models.CASCADE, blank=True, null=True, related_name="assigned_slot")
 
+    created_at = models.DateTimeField(default=timezone.now)
     service_start_time = models.TimeField(blank=True, null=True)
     service_end_time = models.TimeField(blank=True, null=True)
 
@@ -139,15 +170,26 @@ class Request(models.Model):
                                         default = STATE_PENDING)
 
     type = models.PositiveIntegerField(choices = [(TYPE_REGULAR, "Regular"),
-                                                  (TYPE_EXPRESS, "Express")
+                                                  (TYPE_QUICK, "Quick Question")
                                                  ],
                                         default = TYPE_REGULAR)
 
     description = models.TextField()
 
+    def __get_active(self):
+        try:
+            active_req = ActiveRequest.objects.get(course_offering = self.course_offering,
+                                                   user = self.student)
+        except ActiveRequest.DoesNotExist:
+            active_req = None
+
+        return active_req
+
     @property
     def is_active(self):
-        return self.state in Request.ACTIVE_STATES
+        active_req = self.__get_active()
+
+        return active_req is not None and active_req.request == self
 
     def get_state_class(self):
         if self.state in (Request.STATE_PENDING,):
@@ -161,4 +203,52 @@ class Request(models.Model):
         else:
             return "btn-info"
 
+    @property
+    def get_students_display(self):
+        student = "{} {}".format(self.student.first_name, self.student.last_name)
 
+        if self.additional_students.exists():
+            l = ["{} {}".format(s.first_name, s.last_name) for s in self.additional_students.all()]
+            s = " (and {})".format(", ".join(l))
+        else:
+            s = ""
+
+        return student + s
+
+    def make_active(self):
+        active_req = self.__get_active()
+
+        if active_req is not None:
+            active_req.request = self
+            active_req.save()
+        else:
+            active_req = ActiveRequest(course_offering = self.course_offering,
+                                       user = self.student,
+                                       request = self)
+            active_req.save()
+
+    def make_inactive(self):
+        active_req = self.__get_active()
+
+        if active_req is not None and active_req.request == self:
+            active_req.delete()
+
+    def cancel(self):
+        self.state = Request.STATE_CANCELLED
+        self.make_inactive()
+        self.save()
+
+    def __str__(self):
+        return "{} -- {} -- {} ({})".format(self.student,
+                                       self.course_offering.catalog_quarter,
+                                       self.created_at,
+                                       self.get_state_display())
+
+
+class ActiveRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+    course_offering = models.ForeignKey(CourseOffering, on_delete=models.CASCADE, null=False)
+    request = models.ForeignKey(Request, on_delete=models.CASCADE, null=False)
+
+    class Meta:
+        unique_together = (('user', 'course_offering'),)

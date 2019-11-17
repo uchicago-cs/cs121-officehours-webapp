@@ -1,0 +1,96 @@
+{% extends "uchicago-cs/base.html" %}
+{% load bootstrap4 %}
+
+{% block extra_head %}
+{{ form.media }}
+<script>
+$(document).ready(function(){
+    $('#cancel').click(function(){
+        $('#cancel-request').val("yes")
+        $('#cancelform').submit();
+    });
+
+});
+</script>
+{% endblock %}
+
+
+{% block content %}
+
+{% if active_req %}
+
+    <div class="modal fade" id="confirm-cancel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Are you sure?</h5>
+                </div>
+                <div class="modal-body">
+
+                    <p>
+                        If you are sure you want to do this, click on "Cancel my request".
+                        Otherwise, press "Go Back" to close this window.
+                    </p>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Go Back</button>
+                    <a href="#" id="cancel" class="btn btn-danger danger">Cancel my request</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+     <div class="card-body">
+        <h4 class="card-title">Request for {{ active_req.date }}</h4>
+
+          <p>
+              <button type="button" class ="{{active_req.get_state_class}}" disabled>{{active_req.get_state_display}}</button>
+          </p>
+
+          <p>
+              You requested the following times:
+          </p>
+
+         <ul>
+             {% for slot in active_req.slots.all %}
+                 <li>{{ slot }}</li>
+             {% endfor %}
+         </ul>
+
+         <form action="{% url 'my-request' active_req.course_offering.url_slug %}" id="cancelform" method="post" class="form">
+         {% csrf_token %}
+         <input type="hidden" name="cancel-request" id="cancel-request"/>
+         {% buttons %}
+         <a href="{% url 'request-detail' active_req.course_offering.url_slug active_req.pk %}" class="btn btn-primary" role="button">Edit your request</a>
+         <input type="button" value="Cancel Request" id="cancelBtn" data-toggle="modal" data-target="#confirm-cancel" class="btn btn-danger" />
+         {% endbuttons %}
+         </form>
+
+     </div>
+    </div>
+
+{% else %}
+    {% if form %}
+
+    <h4>Request for {{ date }}</h4>
+
+
+       <form action="{{ form_action }}" method="post" class="form">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      {% buttons %}
+        <button type="submit" class="btn btn-primary">
+          {{ button_label }}
+        </button>
+      {% endbuttons %}
+       </form>
+
+    {% else %}
+        <p>There are no slots available on this date</p>
+    {% endif %}
+{% endif %}
+
+{% endblock %}

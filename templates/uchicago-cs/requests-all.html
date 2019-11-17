@@ -1,0 +1,12 @@
+{% extends "uchicago-cs/base.html" %}
+{% load bootstrap4 %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+
+    <h2>Requests</h2>
+
+    {% render_table table_all %}
+
+
+{% endblock %}

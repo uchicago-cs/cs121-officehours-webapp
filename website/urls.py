@@ -17,15 +17,17 @@ from django.contrib import admin
 from django.urls import path, re_path, include
 from django.contrib.auth import views as auth_views
 
-import webapp.views as views
+import officehours.views as views
 import website.settings as settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
     path('', include('social_django.urls', namespace='social')),
-    path('<str:course_offering_slug>/request', views.request_detail, name='request-detail'),
-    path('<str:course_offering_slug>/request/<int:request_id>', views.request_detail, name='request-detail-id'),
+    path('<str:course_offering_slug>/requests/today', views.requests_today, name='requests-today'),
+    path('<str:course_offering_slug>/requests/all', views.requests_all, name='requests-all'),
+    path('<str:course_offering_slug>/requests/<int:request_id>', views.request_detail, name='request-detail'),
+    path('<str:course_offering_slug>/my-request', views.my_request, name='my-request'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), {'next_page': settings.LOGOUT_REDIRECT_URL},
     name='logout')

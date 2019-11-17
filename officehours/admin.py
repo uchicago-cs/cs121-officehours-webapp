@@ -1,6 +1,8 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import *
 
+admin.site.register(User, UserAdmin)
 
 class CourseOfferingInline(admin.TabularInline):
     model = CourseOffering
@@ -40,6 +42,9 @@ class CourseOfferingAdmin(admin.ModelAdmin):
 class SlotAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(ActiveRequest)
+class ActiveRequestAdmin(admin.ModelAdmin):
+    pass
 
 @admin.register(Request)
 class RequestAdmin(admin.ModelAdmin):
