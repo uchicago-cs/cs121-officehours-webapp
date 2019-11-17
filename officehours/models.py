@@ -163,7 +163,7 @@ class Request(models.Model):
 
     course_offering = models.ForeignKey(CourseOffering, on_delete=models.CASCADE)
     student = models.ForeignKey(User, on_delete=models.CASCADE)
-    additional_students = models.ManyToManyField(User, related_name="additional_requests", blank=True, null=True)
+    additional_students = models.ManyToManyField(User, related_name="additional_requests", blank=True)
     server = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="assigned_requests")
     date = models.DateField()
 
