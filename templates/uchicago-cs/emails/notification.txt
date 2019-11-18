@@ -1,0 +1,5 @@
+Greetings from the {{request.course_offering.catalog}} Office Hours!
+
+We wanted to let you know that we have scheduled you to attend office hours at {{request.actual_slot.interval}} on {{request.actual_slot.date}}. Please make sure to go to {{request.actual_slot.room}} at that time.
+
+If you are not planning to attend office hours after all, please cancel your request at https://cs121-officehours.herokuapp.com/

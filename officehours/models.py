@@ -1,8 +1,12 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.template.loader import get_template
 from django.utils import timezone
-
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Cc
 
 class User(AbstractUser):
     active_requests = models.ManyToManyField("CourseOffering",
@@ -271,6 +275,38 @@ class Request(models.Model):
         self.state = Request.STATE_SCHEDULED
         self.actual_slot = slot
         self.save()
+
+    def send_notification_email(self, cc_users=None, dry_run=False):
+        # We only send the notification e-mail if the request
+        # has been scheduled
+        if self.state != Request.STATE_SCHEDULED:
+            return False
+
+        t = get_template("uchicago-cs/emails/notification.txt")
+        body = t.render({"request": self})
+
+        student = self.student
+
+        message = Mail(from_email=("borja+officehours@cs.uchicago.edu", 'CS 121 Office Hours'),
+                       to_emails=(student.email, "{} {}".format(student.first_name, student.last_name)),
+                       subject='Your {} Office Hours Request'.format(self.course_offering.catalog),
+                       plain_text_content=body)
+
+        if cc_users is not None:
+            ccs = [Cc(u.email, "{} {}".format(u.first_name, u.last_name)) for u in cc_users if u != student]
+            if len(ccs) > 0:
+                message.cc = ccs
+
+        if dry_run:
+            print(message)
+        else:
+            try:
+                sendgrid_client = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+                response = sendgrid_client.send(message)
+                return True
+            except Exception as e:
+                return False
+
 
     def start_service(self, server):
         self.state = Request.STATE_INPROGRESS

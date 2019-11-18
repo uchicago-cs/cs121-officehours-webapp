@@ -12,6 +12,7 @@ from officehours.forms import RequestForm
 from officehours.tables import RequestTable
 from django.utils import timezone
 
+
 def index(request):
     if request.user.is_authenticated:
         return redirect(reverse('my-request', args=["cmsc12100-aut-19"]))
@@ -133,7 +134,11 @@ def request_detail(request, course_offering_slug, request_id):
             try:
                 slot = req.slots.get(pk=slot_pk)
                 req.schedule(slot)
-                return redirect(next_page + "?request_scheduled=yes")
+                email_success = req.send_notification_email(cc_users=[request.user])
+                if email_success:
+                    return redirect(next_page + "?request_scheduled=yes")
+                else:
+                    return redirect(next_page + "?request_scheduled=yes_noemail")
             except Slot.DoesNotExist:
                 return redirect(next_page + "?request_scheduled=no")
         elif update_type == "start-service" and user_is_server:
