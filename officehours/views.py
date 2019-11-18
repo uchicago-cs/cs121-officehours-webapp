@@ -77,7 +77,7 @@ def my_request(request, course_offering_slug):
             except ValueError:
                 raise ValueError("Not a valid date: {}".format(force_date))
         else:
-            day = timezone.now().date()
+            day = timezone.localtime(timezone.now()).date()
 
         context["date"] = day
 
