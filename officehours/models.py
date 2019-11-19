@@ -339,6 +339,11 @@ class Request(models.Model):
         self.make_inactive()
         self.save()
 
+    def no_show(self):
+        self.state = Request.STATE_NOSHOW
+        self.make_inactive()
+        self.save()
+
     def __str__(self):
         return "{} -- {} -- {} ({})".format(self.student,
                                        self.course_offering.catalog_quarter,

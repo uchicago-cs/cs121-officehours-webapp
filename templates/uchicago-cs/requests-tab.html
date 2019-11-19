@@ -84,9 +84,21 @@
         </button>
          {% endbuttons %}
          </form>
-
      {% endif %}
+     {% if req.is_scheduled %}
+        <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="noshowform" method="post" class="form-inline">
+         {% csrf_token %}
+         <input type="hidden" name="update-type" value="no-show"/>
 
+         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
+
+         {% buttons %}
+         <button type="submit" class="btn btn-danger">
+         No Show
+        </button>
+         {% endbuttons %}
+         </form>
+      {% endif %}
       </div>
     </div>
   </div>
