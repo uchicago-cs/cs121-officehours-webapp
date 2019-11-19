@@ -223,6 +223,9 @@ class Request(models.Model):
     def is_inprogress(self):
         return self.state == Request.STATE_INPROGRESS
 
+    def ordered_slots(self):
+        return self.slots.all().order_by("start_time")
+
 
     def get_state_class(self):
         if self.state in (Request.STATE_PENDING,):
@@ -247,6 +250,24 @@ class Request(models.Model):
             s = ""
 
         return student + s
+
+    @property
+    def get_accordion_display(self):
+        """Produces string summary displayed on 'accordions' in Today's Request"""
+
+        created_at = timezone.localtime(self.created_at)
+
+        if self.type == Request.TYPE_QUICK:
+            quick = "(Quick)"
+        else:
+            quick = ""
+
+        if self.actual_slot is not None:
+            actual = " @ {}".format(self.actual_slot.interval)
+        else:
+            actual = ""
+
+        return "[{}] {} {} {}".format(created_at.strftime("%I:%M:%S %p"), self.get_students_display, actual, quick)
 
     def make_active(self):
         active_req = self.__get_active()

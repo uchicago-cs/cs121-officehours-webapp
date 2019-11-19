@@ -11,7 +11,7 @@
     <div class="card-header" id="{{tab_id}}-{{req.pk}}-heading">
       <h5 class="mb-0">
         <button class="btn btn-link" data-toggle="collapse" data-target="#{{tab_id}}-{{ req.pk }}-collapse" aria-expanded="true" aria-controls="collapseOne">
-         {{req.get_students_display}} ({{ req.get_type_display }} request)
+         {{req.get_accordion_display}}
         </button>
       </h5>
     </div>
@@ -25,7 +25,7 @@
       {% if req.is_pending %}
           <h4>Slots:</h4>
           <ul>
-             {% for slot in req.slots.all %}
+             {% for slot in req.ordered_slots %}
                  <li>{{ slot }}</li>
              {% endfor %}
          </ul>
@@ -51,7 +51,7 @@
          <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
 
          <select name="slot" class="form-control">
-             {% for slot in req.slots.all %}
+             {% for slot in req.ordered_slots %}
                  <option value="{{slot.pk}}">{{ slot }}</option>
              {% endfor %}
          </select>

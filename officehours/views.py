@@ -202,7 +202,7 @@ def requests_today(request, course_offering_slug):
 
     current_slot = Slot.get_current_slot(course_offering)
 
-    today_requests = course_offering.request_set.filter(date=day)
+    today_requests = course_offering.request_set.filter(date=day).order_by("created_at")
 
     context["requests_pending_today"] = today_requests.filter(state=Request.STATE_PENDING)
     context["requests_pending_now"] = today_requests.filter(state=Request.STATE_PENDING, slots__in=[current_slot])
