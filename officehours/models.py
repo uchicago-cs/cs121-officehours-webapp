@@ -223,8 +223,17 @@ class Request(models.Model):
     def is_inprogress(self):
         return self.state == Request.STATE_INPROGRESS
 
+    @property
     def ordered_slots(self):
         return self.slots.all().order_by("start_time")
+
+    @property
+    def next_available_slot(self):
+        now = timezone.localtime(timezone.now())
+
+        next_slot = self.slots.filter(end_time__gt = now.time()).order_by("start_time").first()
+
+        return next_slot
 
 
     def get_state_class(self):
@@ -262,12 +271,23 @@ class Request(models.Model):
         else:
             quick = ""
 
+        if self.state == Request.STATE_PENDING:
+            next_slot = self.next_available_slot
+            
+            if next_slot is not None:
+                if next_slot == Slot.get_current_slot(self.course_offering):
+                    next_str = "(Available NOW)"
+                else:
+                    next_str = "(Earliest availability: {})".format(next_slot.interval)
+            else:
+                next_str = "(No availability)"
+
         if self.actual_slot is not None:
             actual = " @ {}".format(self.actual_slot.interval)
         else:
             actual = ""
 
-        return "[{}] {} {} {}".format(created_at.strftime("%I:%M:%S %p"), self.get_students_display, actual, quick)
+        return "[{}] {} {} {} {}".format(created_at.strftime("%I:%M:%S %p"), self.get_students_display, actual, quick, next_str)
 
     def make_active(self):
         active_req = self.__get_active()
