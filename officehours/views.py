@@ -150,7 +150,7 @@ def request_detail(request, course_offering_slug, request_id):
         elif update_type == "no-show" and user_is_server:
             req.no_show()
             return redirect(next_page + "?request_noshow=yes")
-        else:
+        elif update_type is not None:
             return redirect("/")
 
 
