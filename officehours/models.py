@@ -271,9 +271,10 @@ class Request(models.Model):
         else:
             quick = ""
 
+        next_str = ""
         if self.state == Request.STATE_PENDING:
             next_slot = self.next_available_slot
-            
+
             if next_slot is not None:
                 if next_slot == Slot.get_current_slot(self.course_offering):
                     next_str = "(Available NOW)"
