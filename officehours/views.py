@@ -83,7 +83,7 @@ def my_request(request, course_offering_slug):
         context["date"] = day
 
         # Are there slots available on the selected day?
-        slots = course_offering.slot_set.filter(date=day)
+        slots = course_offering.slot_set.filter(date=day).order_by("start_time")
 
         if len(slots) > 0:
             form = RequestForm()
