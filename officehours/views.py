@@ -257,6 +257,7 @@ def status(request, course_offering_slug):
 
     context = {}
     context["course_offering"] = course_offering
+    context["user_is_server"] = user_is_server
     context["date"] = day
 
     # Are there slots available on the selected day?
