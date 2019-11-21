@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from collections import OrderedDict
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -237,3 +237,60 @@ def requests_all(request, course_offering_slug):
     context["table_all"] = table_all
 
     return render(request, 'uchicago-cs/requests-all.html', context)
+
+
+@login_required
+def status(request, course_offering_slug):
+    course_offering = get_object_or_404(CourseOffering, url_slug=course_offering_slug)
+    user_is_server = course_offering.is_server(request.user)
+
+    # Allow instructors/TAs to choose arbitrary dates
+    force_date = request.GET.get('force_date')
+
+    if user_is_server and force_date is not None:
+        try:
+            day = datetime.strptime(force_date, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError("Not a valid date: {}".format(force_date))
+    else:
+        day = timezone.localtime(timezone.now()).date()
+
+    context = {}
+    context["course_offering"] = course_offering
+    context["date"] = day
+
+    # Are there slots available on the selected day?
+    slots = course_offering.slot_set.filter(date=day).order_by("start_time")
+
+    if len(slots) == 0:
+        context["slot_requests"] = None
+    else:
+        slot_requests = OrderedDict()
+        for slot in slots:
+            slot_requests[slot] ={"pending":0, "scheduled":0, "inprogress":0, "completed": 0}
+
+        today_requests = course_offering.request_set.filter(date=day)
+
+        total_pending = 0
+
+        for req in today_requests:
+            if req.state == Request.STATE_PENDING:
+                next_available_slot = req.next_available_slot
+                if next_available_slot is not None:
+                    slot_requests[next_available_slot]["pending"] += 1
+                    total_pending += 1
+            elif req.state == Request.STATE_SCHEDULED:
+                req_slot = req.actual_slot
+                slot_requests[req_slot]["scheduled"] += 1
+            elif req.state == Request.STATE_INPROGRESS:
+                req_slot = req.actual_slot
+                slot_requests[req_slot]["inprogress"] += 1
+            elif req.state == Request.STATE_COMPLETED:
+                req_slot = req.actual_slot
+                slot_requests[req_slot]["completed"] += 1
+
+        print(slot_requests)
+        context["total_pending"] = total_pending
+        context["slot_requests"] = slot_requests
+
+    return render(request, 'uchicago-cs/status.html', context)

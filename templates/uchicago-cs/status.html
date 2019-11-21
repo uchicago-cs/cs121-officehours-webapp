@@ -1,0 +1,55 @@
+{% extends "uchicago-cs/base.html" %}
+{% load bootstrap4 %}
+
+{% block extra_head %}
+{{ form.media }}
+
+{% endblock %}
+
+
+{% block content %}
+
+
+    <h4>Office Hours Status ({{ date }})</h4>
+
+{% if not slot_requests %}
+
+There are no office hours on this date.
+
+{% else %}
+
+    <p>There are currently <strong>{{ total_pending }}</strong> pending requests for office hours.</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Slot</th>
+      <th scope="col">Pending</th>
+      <th scope="col">Scheduled</th>
+      <th scope="col">In Progress</th>
+      <th scope="col">Completed</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for slot, counts in slot_requests.items %}
+        <tr>
+          <th scope="row">{{ slot.interval }}</th>
+          <td>{{counts.pending}}</td>
+          <td>{{counts.scheduled}}</td>
+          <td>{{counts.inprogress}}</td>
+          <td>{{counts.completed}}</td>
+        </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="alert alert-secondary" role="alert">
+<strong>Note</strong>: The number of "Pending" requests for a given time slot is the number of requests that could be fulfilled
+at that time <em>or later</em>. In other words, a request is counted in the earliest slot that it can be fulfilled at (which
+can change as the day progresses, if someone is not scheduled for their earliest slot)
+</div>
+
+{% endif %}
+
+
+{% endblock %}

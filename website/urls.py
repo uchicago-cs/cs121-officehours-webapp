@@ -28,6 +28,7 @@ urlpatterns = [
     path('<str:course_offering_slug>/requests/all', views.requests_all, name='requests-all'),
     path('<str:course_offering_slug>/requests/<int:request_id>', views.request_detail, name='request-detail'),
     path('<str:course_offering_slug>/my-request', views.my_request, name='my-request'),
+    path('<str:course_offering_slug>/status', views.status, name='status'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), {'next_page': settings.LOGOUT_REDIRECT_URL},
     name='logout')
