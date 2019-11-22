@@ -318,13 +318,8 @@ class Request(models.Model):
         self.actual_slot = slot
         self.save()
 
-    def send_notification_email(self, cc_users=None, dry_run=False):
-        # We only send the notification e-mail if the request
-        # has been scheduled
-        if self.state != Request.STATE_SCHEDULED:
-            return False
-
-        t = get_template("uchicago-cs/emails/notification.txt")
+    def send_notification_email(self, template, cc_users=None, dry_run=False):
+        t = get_template(template)
         body = t.render({"request": self})
 
         student = self.student
@@ -364,6 +359,11 @@ class Request(models.Model):
 
     def no_show(self):
         self.state = Request.STATE_NOSHOW
+        self.make_inactive()
+        self.save()
+
+    def could_not_see(self):
+        self.state = Request.STATE_COULDNOTSEE
         self.make_inactive()
         self.save()
 

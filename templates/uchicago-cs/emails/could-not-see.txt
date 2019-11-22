@@ -1,0 +1,3 @@
+Greetings from the {{request.course_offering.catalog}} Office Hours.
+
+Thanks for signing up for office hours today. Unfortunately, it seems like we will not get to your request today :-( We have made a record of this, and we will give your next request a higher priority.

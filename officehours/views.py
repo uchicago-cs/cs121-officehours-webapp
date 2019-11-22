@@ -134,7 +134,7 @@ def request_detail(request, course_offering_slug, request_id):
             try:
                 slot = req.slots.get(pk=slot_pk)
                 req.schedule(slot)
-                email_success = req.send_notification_email(cc_users=[request.user])
+                email_success = req.send_notification_email("uchicago-cs/emails/scheduled.txt", cc_users=[request.user])
                 if email_success:
                     return redirect(next_page + "?request_scheduled=yes")
                 else:
@@ -150,6 +150,14 @@ def request_detail(request, course_offering_slug, request_id):
         elif update_type == "no-show" and user_is_server:
             req.no_show()
             return redirect(next_page + "?request_noshow=yes")
+        elif update_type == "could-not-see" and user_is_server:
+            req.could_not_see()
+            email_success = req.send_notification_email("uchicago-cs/emails/could-not-see.txt")
+            if email_success:
+                return redirect(next_page + "?request_couldnotsee=yes")
+            else:
+                return redirect(next_page + "?request_couldnotsee=yes_noemail")
+            return redirect(next_page + "?request_couldnotsee=yes")
         elif update_type is not None:
             return redirect("/")
 
