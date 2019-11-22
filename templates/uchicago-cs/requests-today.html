@@ -7,8 +7,8 @@
 
 <ul class="nav nav-tabs" id="todayTabs">
   <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#now">Pending Now ({{  requests_pending_now.count }})</a></li>
-  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#today">Pending Today ({{  requests_pending_today.count }})</a></li>
-  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#scheduled">Scheduled ({{  requests_scheduled.count }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#today">Pending Today ({{  requests_pending_today|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#scheduled">Scheduled ({{  requests_scheduled|length }})</a></li>
   <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#in-progress">In Progress ({{  requests_inprogress.count }})</a></li>
   <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#completed">Completed ({{  requests_completed.count }})</a></li>
 </ul>

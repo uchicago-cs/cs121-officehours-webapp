@@ -217,10 +217,17 @@ def requests_today(request, course_offering_slug):
 
     today_requests = course_offering.request_set.filter(date=day)
 
-    context["requests_pending_today"] = today_requests.filter(state=Request.STATE_PENDING).order_by("created_at")
+    requests_pending_today = sorted(today_requests.filter(state=Request.STATE_PENDING).order_by("created_at"),
+                                    key=lambda x: x.next_available_slot.start_time if x.next_available_slot else 100000)
+
+
+    context["requests_pending_today"] = requests_pending_today
     context["requests_pending_now"] = today_requests.filter(state=Request.STATE_PENDING, slots__in=[current_slot]).order_by("created_at")
 
-    context["requests_scheduled"] = today_requests.filter(state=Request.STATE_SCHEDULED, actual_slot__isnull=False)
+    requests_scheduled = sorted(today_requests.filter(state=Request.STATE_SCHEDULED, actual_slot__isnull=False),
+                                key=lambda x: x.actual_slot.start_time)
+
+    context["requests_scheduled"] = requests_scheduled
     context["requests_inprogress"] = today_requests.filter(state=Request.STATE_INPROGRESS)
     context["requests_completed"] = today_requests.filter(state=Request.STATE_COMPLETED)
 
