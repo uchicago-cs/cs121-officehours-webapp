@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from collections import OrderedDict
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -218,7 +218,7 @@ def requests_today(request, course_offering_slug):
     today_requests = course_offering.request_set.filter(date=day)
 
     requests_pending_today = sorted(today_requests.filter(state=Request.STATE_PENDING).order_by("created_at"),
-                                    key=lambda x: x.next_available_slot.start_time if x.next_available_slot else 100000)
+                                    key=lambda x: x.next_available_slot.start_time if x.next_available_slot else time(23, 59))
 
 
     context["requests_pending_today"] = requests_pending_today
