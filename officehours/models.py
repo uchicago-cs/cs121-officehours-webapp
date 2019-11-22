@@ -301,7 +301,7 @@ class Request(models.Model):
         else:
             actual = ""
 
-        if self.priority:
+        if self.state == Request.STATE_PENDING and self.priority:
             priority = "<strong style='color: red'>PRIORITY</strong>"
         else:
             priority = ""
