@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.template.loader import get_template
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Cc
 
@@ -235,6 +236,18 @@ class Request(models.Model):
 
         return next_slot
 
+    @property
+    def priority(self):
+        q = self.course_offering.request_set
+        previous_request = q.filter(student=self.student) \
+                            .exclude(state__in=(Request.STATE_PENDING, Request.STATE_CANCELLED, Request.STATE_NOSHOW)) \
+                            .order_by("-created_at") \
+                            .first()
+
+        if previous_request is not None and previous_request.state == Request.STATE_COULDNOTSEE:
+            return True
+        else:
+            return False
 
     def get_state_class(self):
         if self.state in (Request.STATE_PENDING,):
@@ -288,7 +301,14 @@ class Request(models.Model):
         else:
             actual = ""
 
-        return "[{}] {} {} {} {}".format(created_at.strftime("%I:%M:%S %p"), self.get_students_display, actual, quick, next_str)
+        if self.priority:
+            priority = "<strong style='color: red'>PRIORITY</strong>"
+        else:
+            priority = ""
+
+        s = "[{}] {} {} {} {} {}".format(created_at.strftime("%I:%M:%S %p"), self.get_students_display, actual, quick, next_str, priority)
+
+        return mark_safe(s)
 
     def make_active(self):
         active_req = self.__get_active()
