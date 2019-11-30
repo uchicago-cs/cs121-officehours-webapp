@@ -69,6 +69,12 @@ $(document).ready(function(){
 
      {% endif %}
 
+               <p>Request description:</p>
+      <div class="form-group">
+    <textarea class="form-control" rows="3" readonly>{{ active_req.description }}</textarea>
+  </div>
+
+
 {% if active_req.is_pending or active_req.is_scheduled %}
          <form action="{%url 'request-detail' active_req.course_offering.url_slug active_req.pk %}" id="cancelform" method="post" class="form">
          {% csrf_token %}
