@@ -51,6 +51,7 @@
          {% csrf_token %}
          <input type="hidden" name="update-type" value="schedule"/>
          <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
+         <input type="hidden" name="next-hash" id="next-hash" value="scheduled"/>
 
          <select name="slot" class="form-control">
              {% for slot in req.ordered_slots %}
@@ -90,11 +91,14 @@
          {% csrf_token %}
           {% if req.is_scheduled %}
          <input type="hidden" name="update-type" value="start-service"/>
+         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
+         <input type="hidden" name="next-hash" id="next-hash" value="in-progress"/>
           {% elif req.is_inprogress %}
          <input type="hidden" name="update-type" value="complete-service"/>
+         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
+         <input type="hidden" name="next-hash" id="next-hash" value="completed"/>
           {% endif %}
 
-         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
 
          {% buttons %}
          <button type="submit" class="btn btn-primary">

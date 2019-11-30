@@ -124,10 +124,16 @@ def request_detail(request, course_offering_slug, request_id):
     if request.POST:
         update_type = request.POST.get("update-type")
         next_page = request.POST.get("next-page")
+        next_hash = request.POST.get("next-hash")
+
+        if next_hash is None:
+            next_hash = ""
+        else:
+            next_hash = "#" + next_hash
 
         if update_type == "cancel":
             req.cancel()
-            return redirect(next_page + "?request_cancelled=yes")
+            return redirect(next_page + "?request_cancelled=yes" + next_hash)
         elif update_type == "schedule" and user_is_server:
             slot_pk = request.POST.get("slot")
 
@@ -136,27 +142,27 @@ def request_detail(request, course_offering_slug, request_id):
                 req.schedule(slot)
                 email_success = req.send_notification_email("uchicago-cs/emails/scheduled.txt", cc_users=[request.user])
                 if email_success:
-                    return redirect(next_page + "?request_scheduled=yes")
+                    return redirect(next_page + "?request_scheduled=yes" + next_hash)
                 else:
-                    return redirect(next_page + "?request_scheduled=yes_noemail")
+                    return redirect(next_page + "?request_scheduled=yes_noemail" + next_hash)
             except Slot.DoesNotExist:
-                return redirect(next_page + "?request_scheduled=no")
+                return redirect(next_page + "?request_scheduled=no" + next_hash)
         elif update_type == "start-service" and user_is_server:
             req.start_service(server=request.user)
-            return redirect(next_page + "?request_started=yes")
+            return redirect(next_page + "?request_started=yes" + next_hash)
         elif update_type == "complete-service" and user_is_server:
             req.complete_service()
-            return redirect(next_page + "?request_completed=yes")
+            return redirect(next_page + "?request_completed=yes" + next_hash)
         elif update_type == "no-show" and user_is_server:
             req.no_show()
-            return redirect(next_page + "?request_noshow=yes")
+            return redirect(next_page + "?request_noshow=yes" + next_hash)
         elif update_type == "could-not-see" and user_is_server:
             req.could_not_see()
             email_success = req.send_notification_email("uchicago-cs/emails/could-not-see.txt")
             if email_success:
-                return redirect(next_page + "?request_couldnotsee=yes")
+                return redirect(next_page + "?request_couldnotsee=yes" + next_hash)
             else:
-                return redirect(next_page + "?request_couldnotsee=yes_noemail")
+                return redirect(next_page + "?request_couldnotsee=yes_noemail" + next_hash)
             return redirect(next_page + "?request_couldnotsee=yes")
         elif update_type is not None:
             return redirect("/")
