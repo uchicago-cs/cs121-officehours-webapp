@@ -279,11 +279,6 @@ class Request(models.Model):
 
         created_at = timezone.localtime(self.created_at)
 
-        if self.type == Request.TYPE_QUICK:
-            quick = "(Quick)"
-        else:
-            quick = ""
-
         next_str = ""
         if self.state == Request.STATE_PENDING:
             next_slot = self.next_available_slot
@@ -306,7 +301,12 @@ class Request(models.Model):
         else:
             priority = ""
 
-        s = "[{}] {} {} {} {} {}".format(created_at.strftime("%I:%M:%S %p"), self.get_students_display, actual, quick, next_str, priority)
+        if self.type == Request.TYPE_QUICK:
+            quick = "<strong style='color: green'>QUICK</strong>"
+        else:
+            quick = ""
+
+        s = "[{}] {} {} {} {} {}".format(created_at.strftime("%I:%M:%S %p"), self.get_students_display, actual, next_str, quick, priority)
 
         return mark_safe(s)
 
