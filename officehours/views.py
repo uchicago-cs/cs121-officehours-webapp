@@ -40,12 +40,10 @@ def my_request(request, course_offering_slug):
     context["user_is_server"] = user_is_server
 
     active_req = request.user.get_active_request(course_offering)
+    form = RequestForm(request.POST or None)
 
     if request.POST and active_req is None:
         # Check if this is the creation of a new request
-
-        form = RequestForm(request.POST)
-
         if form.is_valid():
             active_req = form.save(commit=False)
 
@@ -86,7 +84,6 @@ def my_request(request, course_offering_slug):
         slots = course_offering.slot_set.filter(date=day).order_by("start_time")
 
         if len(slots) > 0:
-            form = RequestForm()
             form.fields["slots"].choices = [(s.pk, "{}".format(s.interval)) for s in slots]
 
             context["form"] = form
@@ -185,8 +182,6 @@ def request_detail(request, course_offering_slug, request_id):
                 return redirect(reverse('requests-all', args=[course_offering_slug]))
             else:
                 return redirect(reverse('request-detail', args=[course_offering_slug, req.pk]))
-        else:
-            return render(request, 'uchicago-cs/request.html', context)
 
     # We are viewing or editing an existing request
     slots = course_offering.slot_set.filter(date=req.date)
