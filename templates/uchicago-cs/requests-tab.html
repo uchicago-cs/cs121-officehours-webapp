@@ -31,10 +31,20 @@
          </ul>
      {% endif %}
 
+          <p>
+              <b>E-mail</b>: <a href="mailto:{{ req.student.email }}">{{ req.student.email }}</a>
+          </p>
+
      {% if req.is_scheduled or req.is_inprogress %}
           <p>
              Scheduled for <b>{{ req.actual_slot.interval }}</b>.
           </p>
+          {% if req.is_scheduled_online %}
+          <p>
+              Zoom URL: <a href="{{ req.zoom_url }}">{{ req.zoom_url }}</a>
+          </p>
+          {% endif %}
+
 
      {% endif %}
 

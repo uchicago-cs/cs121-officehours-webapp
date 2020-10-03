@@ -15,7 +15,7 @@ from django.utils import timezone
 
 def index(request):
     if request.user.is_authenticated:
-        return redirect(reverse('my-request', args=["cmsc12100-aut-19"]))
+        return redirect(reverse('my-request', args=["cmsc12100-aut-20"]))
 
     context = {}
 
@@ -41,6 +41,12 @@ def my_request(request, course_offering_slug):
 
     active_req = request.user.get_active_request(course_offering)
     form = RequestForm(request.POST or None)
+
+    # TODO: At some point, we will resume using this app for in-person office hours
+    # or even a combination of in-person and remote. Instead of unconditionally making
+    # the Zoom URL field required, the form frontend should dynamically show that field
+    # if the user select any remote slots.
+    form.fields["zoom_url"].required = True
 
     if request.POST and active_req is None:
         # Check if this is the creation of a new request

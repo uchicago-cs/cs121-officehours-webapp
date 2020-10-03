@@ -118,12 +118,18 @@ class CourseOffering(models.Model):
 
 
 class Slot(models.Model):
+    SLOT_ONLINE = 10
+    SLOT_INPERSON = 20
+
     course_offering = models.ForeignKey(CourseOffering, on_delete=models.CASCADE)
 
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    room = models.CharField(max_length=64)
+    room = models.CharField(max_length=64, null=True, blank=True)
+
+    format = models.PositiveIntegerField(choices = [(SLOT_ONLINE, "Online"),
+                                                    (SLOT_INPERSON, "In-person")])
 
     def __str__(self):
         return "{} ({})".format(self.date, self.interval)
@@ -195,6 +201,8 @@ class Request(models.Model):
                                                  ],
                                         default = TYPE_REGULAR)
 
+    zoom_url = models.URLField(null=True, blank=True)
+
     description = models.TextField()
 
     def __get_active(self):
@@ -223,6 +231,13 @@ class Request(models.Model):
     @property
     def is_inprogress(self):
         return self.state == Request.STATE_INPROGRESS
+
+    @property
+    def is_scheduled_online(self):
+        if self.actual_slot is None:
+            return False
+        else:
+            return self.actual_slot.format == Slot.SLOT_ONLINE
 
     @property
     def ordered_slots(self):

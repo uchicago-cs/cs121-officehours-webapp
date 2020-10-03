@@ -10,13 +10,16 @@ class RequestForm(forms.ModelForm):
 
     class Meta:
         model = Request
-        fields = ['slots', 'type', 'description']
+        fields = ['slots', 'type', 'zoom_url', 'description']
         widgets = {
             'slots': forms.CheckboxSelectMultiple,
             'type': forms.RadioSelect,
-            'description': forms.Textarea(attrs={'rows':4})
+            'zoom_url': forms.URLInput,
+            'description': forms.Textarea(attrs={'rows': 4})
         }
         labels = {
             'slots': _('Please select the times you are available at:'),
             'type': _('Please specify the type of request:'),
-            'description': _('Describe the issue you need help with at office hours:')        }
+            'zoom_url': _('URL of your Zoom meeting:'),
+            'description': _('Describe the issue you need help with at office hours:')
+        }
