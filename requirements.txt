@@ -11,3 +11,5 @@ whitenoise==5.2.0
 beautifulsoup4==4.9.3
 html5lib==1.1
 sendgrid==6.4.7
+click==7.1.2
+ipython==7.17.0
