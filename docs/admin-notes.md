@@ -33,6 +33,11 @@ Make sure you're running the script from the root of the app:
 
     heroku run "python3 scripts/SCRIPT"
     
+To run the script in production:
+
+    heroku run --app cs121-officehours "python3 scripts/SCRIPT"
+
+    
 Creating slots
 --------------
 
