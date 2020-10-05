@@ -315,7 +315,6 @@ def status(request, course_offering_slug):
                 req_slot = req.actual_slot
                 slot_requests[req_slot]["completed"] += 1
 
-        print(slot_requests)
         context["total_pending"] = total_pending
         context["slot_requests"] = slot_requests
 
