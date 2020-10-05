@@ -39,6 +39,9 @@
           <p>
              Scheduled for <b>{{ req.actual_slot.interval }}</b>.
           </p>
+         <p>
+             Assigned to <b>{{ req.server.get_full_name }}</b> (<a href="mailto:{{ req.server.email }}">{{ req.server.email }}</a>)
+         </p>
           {% if req.is_scheduled_online %}
           <p>
               Zoom URL: <a href="{{ req.zoom_url }}">{{ req.zoom_url }}</a>
