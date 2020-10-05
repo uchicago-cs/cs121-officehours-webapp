@@ -2,7 +2,7 @@
 
 import os, django, sys
 
-sys.path.append("../")
+sys.path.append(".")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "website.settings")
 django.setup()
