@@ -64,7 +64,14 @@ $(document).ready(function(){
      {% if active_req.is_scheduled or active_req.is_inprogress %}
           <p>
               You have been scheduled for <b>{{ active_req.actual_slot.interval }}</b>.<br/>
-              Please go to <em>{{ active_req.actual_slot.room }}</em> at that time.
+
+              {% if active_req.is_scheduled_online %}
+                  <p>
+                      Zoom URL: <a href="{{ active_req.zoom_url }}">{{ active_req.zoom_url }}</a>
+                  </p>
+              {% else %}
+                  Please go to <em>{{ active_req.actual_slot.room }}</em> at that time.
+              {% endif %}
           </p>
 
      {% endif %}
