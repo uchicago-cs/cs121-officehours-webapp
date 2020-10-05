@@ -1,13 +1,14 @@
 import os
+from smtplib import SMTPException
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.safestring import mark_safe
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Cc
+from django.core.mail import EmailMessage
 
 class User(AbstractUser):
     active_requests = models.ManyToManyField("CourseOffering",
@@ -348,8 +349,9 @@ class Request(models.Model):
         self.make_inactive()
         self.save()
 
-    def schedule(self, slot):
+    def schedule(self, slot, server):
         self.state = Request.STATE_SCHEDULED
+        self.server = server
         self.actual_slot = slot
         self.save()
 
@@ -359,30 +361,42 @@ class Request(models.Model):
 
         student = self.student
 
-        message = Mail(from_email=("borja+officehours@cs.uchicago.edu", 'CS 121 Office Hours'),
-                       to_emails=(student.email, "{} {}".format(student.first_name, student.last_name)),
-                       subject='Your {} Office Hours Request'.format(self.course_offering.catalog),
-                       plain_text_content=body)
+        if settings.DEBUG:
+            recipient = settings.DEBUG_EMAIL
+            if recipient is None:
+                return False
+        else:
+            recipient = student.email
+
+        recipient = '{} {} <{}>'.format(student.first_name, student.last_name, recipient)
 
         if cc_users is not None:
-            ccs = [Cc(u.email, "{} {}".format(u.first_name, u.last_name)) for u in cc_users if u != student]
-            if len(ccs) > 0:
-                message.cc = ccs
+            cc = ['{} {} <{}>'.format(u.first_name, u.last_name, u.email) for u in cc_users if u != student]
+        else:
+            cc = []
 
+        email = EmailMessage(
+            'Your {} Office Hours Request'.format(self.course_offering.catalog),
+            body,
+            'CS 121 Office Hours <{}>'.format(settings.CONTACT_EMAIL),
+            [recipient],
+            cc=cc
+        )
+
+        email_success = True
         if dry_run:
-            print(message)
+            print(email)
         else:
             try:
-                sendgrid_client = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-                response = sendgrid_client.send(message)
-                return True
-            except Exception as e:
-                return False
+                email.send()
+            except SMTPException as e:
+                print(e)
+                email_success = False
 
+        return email_success
 
     def start_service(self, server):
         self.state = Request.STATE_INPROGRESS
-        self.server = server
         self.service_start_time = timezone.localtime(timezone.now())
         self.save()
 

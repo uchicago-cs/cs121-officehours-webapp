@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('SECRET_KEY', 'Please set SECRET_KEY environment variable!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False if os.getenv('DJANGO_DEBUG', "").lower() == "false" else True
 
 ALLOWED_HOSTS = ["127.0.0.1", "cs121-officehours.herokuapp.com"]
 
@@ -110,6 +110,13 @@ DATABASES = {
 }
 
 
+EMAIL_HOST = 'smtp.cs.uchicago.edu'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_USER', 'Please set DJANGO_EMAIL_USER environment variable!')
+EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_PASSWORD', 'Please set DJANGO_EMAIL_PASSWORD environment variable!')
+
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -152,5 +159,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
+
+DEBUG_EMAIL = os.getenv("DJANGO_DEBUG_EMAIL")
+CONTACT_EMAIL = 'cs121-officehours@mailman.cs.uchicago.edu'
 
 django_heroku.settings(locals())

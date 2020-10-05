@@ -142,8 +142,11 @@ def request_detail(request, course_offering_slug, request_id):
 
             try:
                 slot = req.slots.get(pk=slot_pk)
-                req.schedule(slot)
-                email_success = req.send_notification_email("uchicago-cs/emails/scheduled.txt", cc_users=[request.user])
+                req.schedule(slot, request.user)
+                if slot.format == Slot.SLOT_ONLINE:
+                    email_success = req.send_notification_email("uchicago-cs/emails/scheduled-online.txt", cc_users=[request.user])
+                elif slot.format == Slot.SLOT_INPERSON:
+                    email_success = req.send_notification_email("uchicago-cs/emails/scheduled-inperson.txt", cc_users=[request.user])
                 if email_success:
                     return redirect(next_page + "?request_scheduled=yes" + next_hash)
                 else:
