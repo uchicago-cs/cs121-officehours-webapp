@@ -27,7 +27,7 @@ class RequestForm(forms.ModelForm):
     def clean_zoom_url(self):
         zoom_url = self.cleaned_data['zoom_url']
 
-        if not zoom_url.startswith("https://uchicago.zoom.us/"):
+        if not (zoom_url.startswith("https://uchicago.zoom.us/") or zoom_url.startswith("https://chicagobooth.zoom.us/")):
             raise ValidationError("Please enter a valid Zoom URL in the uchicago.zoom.us domain")
 
         return zoom_url
