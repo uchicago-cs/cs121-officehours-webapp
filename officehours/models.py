@@ -397,6 +397,7 @@ class Request(models.Model):
 
     def start_service(self, server):
         self.state = Request.STATE_INPROGRESS
+        self.server = server
         self.service_start_time = timezone.localtime(timezone.now())
         self.save()
 
