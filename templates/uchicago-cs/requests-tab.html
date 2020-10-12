@@ -39,12 +39,26 @@
           <p>
              Scheduled for <b>{{ req.actual_slot.interval }}</b>.
           </p>
+         {% if req.is_scheduled %}
+         <p>
+             Scheduled by <b>{{ req.server.get_full_name }}</b> (<a href="mailto:{{ req.server.email }}">{{ req.server.email }}</a>)
+         </p>
+         {% elif req.is_inprogress %}
          <p>
              Assigned to <b>{{ req.server.get_full_name }}</b> (<a href="mailto:{{ req.server.email }}">{{ req.server.email }}</a>)
          </p>
+         {% endif %}
+
           {% if req.is_scheduled_online %}
           <p>
-              Zoom URL: <a href="{{ req.zoom_url }}" target="_blank">{{ req.zoom_url }}</a>
+              Zoom URL:
+
+              {% if req.is_scheduled %}
+                  <a href="{{ req.zoom_url }}" target="_blank" onclick="return confirm('You have not claimed this request. Are you sure you want to open this Zoom link?')">{{ req.zoom_url }}</a>
+              {% elif req.is_inprogress %}
+                  <a href="{{ req.zoom_url }}" target="_blank">{{ req.zoom_url }}</a>
+              {% endif %}
+
           </p>
           {% endif %}
 
@@ -116,15 +130,15 @@
          {% buttons %}
          <button type="submit" class="btn btn-primary">
           {% if req.is_scheduled %}
-         Start Service
+         Claim this request
           {% elif req.is_inprogress %}
-         End Service
+         Mark as Done
           {% endif %}
         </button>
          {% endbuttons %}
          </form>
          </div>
-     {% if req.is_scheduled %}
+     {% if req.is_scheduled or req.is_inprogress %}
 
     <div class="col-sm text-right">
 
