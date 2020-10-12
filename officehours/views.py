@@ -134,6 +134,8 @@ def request_detail(request, course_offering_slug, request_id):
         else:
             next_hash = "#" + next_hash
 
+        next_expand = "&expand_request={}".format(request_id)
+
         if update_type == "cancel":
             req.cancel()
             return redirect(next_page + "?request_cancelled=yes" + next_hash)
@@ -148,17 +150,17 @@ def request_detail(request, course_offering_slug, request_id):
                 elif slot.format == Slot.SLOT_INPERSON:
                     email_success = req.send_notification_email("uchicago-cs/emails/scheduled-inperson.txt", cc_users=[request.user])
                 if email_success:
-                    return redirect(next_page + "?request_scheduled=yes" + next_hash)
+                    return redirect(next_page + "?request_scheduled=yes" + next_expand + next_hash)
                 else:
-                    return redirect(next_page + "?request_scheduled=yes_noemail" + next_hash)
+                    return redirect(next_page + "?request_scheduled=yes_noemail" + next_expand + next_hash)
             except Slot.DoesNotExist:
-                return redirect(next_page + "?request_scheduled=no" + next_hash)
+                return redirect(next_page + "?request_scheduled=no" + next_expand + next_hash)
         elif update_type == "start-service" and user_is_server:
             req.start_service(server=request.user)
-            return redirect(next_page + "?request_started=yes" + next_hash)
+            return redirect(next_page + "?request_started=yes" + next_expand + next_hash)
         elif update_type == "complete-service" and user_is_server:
             req.complete_service()
-            return redirect(next_page + "?request_completed=yes" + next_hash)
+            return redirect(next_page + "?request_completed=yes" + next_expand + next_hash)
         elif update_type == "no-show" and user_is_server:
             req.no_show()
             return redirect(next_page + "?request_noshow=yes" + next_hash)
@@ -214,6 +216,12 @@ def requests_today(request, course_offering_slug):
     context["user_is_server"] = user_is_server
 
     force_date = request.GET.get('force_date')
+    expand_request = request.GET.get('expand_request')
+    if expand_request is not None:
+        try:
+            expand_request = int(expand_request)
+        except ValueError:
+            expand_request = None
 
     if force_date is not None:
         try:
@@ -240,6 +248,7 @@ def requests_today(request, course_offering_slug):
     context["requests_scheduled"] = requests_scheduled
     context["requests_inprogress"] = today_requests.filter(state=Request.STATE_INPROGRESS)
     context["requests_completed"] = today_requests.filter(state=Request.STATE_COMPLETED)
+    context["expand_request"] = expand_request
 
     return render(request, 'uchicago-cs/requests-today.html', context)
 

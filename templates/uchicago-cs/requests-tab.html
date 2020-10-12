@@ -10,13 +10,13 @@
   <div class="card">
     <div class="card-header" id="{{tab_id}}-{{req.pk}}-heading">
       <h5 class="mb-0">
-        <button class="btn btn-link" data-toggle="collapse" data-target="#{{tab_id}}-{{ req.pk }}-collapse" aria-expanded="true" aria-controls="collapseOne">
+        <button class="btn btn-link{% if expand_request == req.pk %} collapsed{% endif %}" data-toggle="collapse" data-target="#{{tab_id}}-{{ req.pk }}-collapse" aria-expanded="true" aria-controls="collapseOne">
          {{req.get_accordion_display}}
         </button>
       </h5>
     </div>
 
-    <div id="{{tab_id}}-{{ req.pk }}-collapse" class="collapse" aria-labelledby="{{tab_id}}-{{req.pk}}-heading" data-parent="#accordion">
+    <div id="{{tab_id}}-{{ req.pk }}-collapse" class="collapse{% if expand_request == req.pk %} show{% endif %}" aria-labelledby="{{tab_id}}-{{req.pk}}-heading" data-parent="#accordion">
       <div class="card-body">
                 <p>
               <button type="button" class ="{{req.get_state_class}}" disabled>{{req.get_state_display}}</button>
