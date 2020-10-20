@@ -260,12 +260,15 @@ def requests_today(request, course_offering_slug):
 
     today_requests = course_offering.request_set.filter(date=day)
 
+    requests_pending_soon =  sorted(today_requests.filter(state=Request.STATE_PENDING, slots__in=upcoming_slots).distinct().order_by("created_at"),
+                                    key=lambda x: x.next_available_slot.start_time if x.next_available_slot else time(23, 59))
+
     requests_pending_today = sorted(today_requests.filter(state=Request.STATE_PENDING).order_by("created_at"),
                                     key=lambda x: x.next_available_slot.start_time if x.next_available_slot else time(23, 59))
 
 
+    context["requests_pending_soon"] = requests_pending_soon
     context["requests_pending_today"] = requests_pending_today
-    context["requests_pending_soon"] = today_requests.filter(state=Request.STATE_PENDING, slots__in=upcoming_slots).distinct().order_by("created_at")
 
     requests_scheduled = sorted(today_requests.filter(state=Request.STATE_SCHEDULED, actual_slot__isnull=False),
                                 key=lambda x: x.actual_slot.start_time)
