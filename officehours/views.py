@@ -128,7 +128,7 @@ def request_detail(request, course_offering_slug, request_id):
         update_type = request.POST.get("update-type")
         next_page = request.POST.get("next-page")
         next_hash = request.POST.get("next-hash")
-        print(request.POST)
+
         if next_hash is None:
             next_hash = ""
         else:
