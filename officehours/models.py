@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from smtplib import SMTPException
 
 from django.conf import settings
@@ -156,6 +157,16 @@ class Slot(models.Model):
             return slots[0]
         else:
             return None
+
+    @staticmethod
+    def get_next_slots(course_offering, hours):
+        now = timezone.localtime(timezone.now())
+
+        slots = Slot.objects.filter(course_offering=course_offering,
+                                    date=now.date(),
+                                    end_time__lte=(now + timedelta(hours=hours)).time())
+
+        return slots
 
 
 class Request(models.Model):

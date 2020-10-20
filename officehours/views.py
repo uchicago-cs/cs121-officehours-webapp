@@ -256,7 +256,7 @@ def requests_today(request, course_offering_slug):
     else:
         day = timezone.localtime(timezone.now()).date()
 
-    current_slot = Slot.get_current_slot(course_offering)
+    upcoming_slots = Slot.get_next_slots(course_offering, hours=2)
 
     today_requests = course_offering.request_set.filter(date=day)
 
@@ -265,7 +265,7 @@ def requests_today(request, course_offering_slug):
 
 
     context["requests_pending_today"] = requests_pending_today
-    context["requests_pending_now"] = today_requests.filter(state=Request.STATE_PENDING, slots__in=[current_slot]).order_by("created_at")
+    context["requests_pending_soon"] = today_requests.filter(state=Request.STATE_PENDING, slots__in=upcoming_slots).distinct().order_by("created_at")
 
     requests_scheduled = sorted(today_requests.filter(state=Request.STATE_SCHEDULED, actual_slot__isnull=False),
                                 key=lambda x: x.actual_slot.start_time)

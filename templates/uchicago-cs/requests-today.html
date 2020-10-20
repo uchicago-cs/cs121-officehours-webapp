@@ -67,7 +67,7 @@ confirmation_msgs = {
     <h2>Today's Requests</h2>
 
 <ul class="nav nav-tabs" id="todayTabs">
-  <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#now">Pending Now ({{  requests_pending_now.count }})</a></li>
+  <li class="nav-item active"><a class="nav-link" data-toggle="tab" href="#soon">Pending Soon ({{  requests_pending_soon|length }})</a></li>
   <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#today">Pending Today ({{  requests_pending_today|length }})</a></li>
   <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#scheduled">Scheduled ({{  requests_scheduled|length }})</a></li>
   <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#in-progress">In Progress ({{  requests_inprogress.count }})</a></li>
@@ -76,7 +76,7 @@ confirmation_msgs = {
 
 <div class="tab-content">
 
-{% include "./requests-tab.html" with requests=requests_pending_now tab_id="now" tab_active=True %}
+{% include "./requests-tab.html" with requests=requests_pending_soon tab_id="soon" tab_active=True %}
 
 {% include "./requests-tab.html" with requests=requests_pending_today tab_id="today" %}
 
