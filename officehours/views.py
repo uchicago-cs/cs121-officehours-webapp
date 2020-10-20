@@ -128,7 +128,7 @@ def request_detail(request, course_offering_slug, request_id):
         update_type = request.POST.get("update-type")
         next_page = request.POST.get("next-page")
         next_hash = request.POST.get("next-hash")
-
+        print(request.POST)
         if next_hash is None:
             next_hash = ""
         else:
@@ -137,9 +137,13 @@ def request_detail(request, course_offering_slug, request_id):
         next_expand = "&expand_request={}".format(request_id)
 
         if update_type == "cancel":
+            # Cancelling a request
+
             req.cancel()
             return redirect(next_page + "?request_cancelled=yes" + next_hash)
         elif update_type == "schedule" and user_is_server:
+            # Scheduling a request
+
             slot_pk = request.POST.get("slot")
 
             try:
@@ -155,23 +159,44 @@ def request_detail(request, course_offering_slug, request_id):
                     return redirect(next_page + "?request_scheduled=yes_noemail" + next_expand + next_hash)
             except Slot.DoesNotExist:
                 return redirect(next_page + "?request_scheduled=no" + next_expand + next_hash)
+
         elif update_type == "start-service" and user_is_server:
+            # Starting service ("claiming" a request)
+
             req.start_service(server=request.user)
             return redirect(next_page + "?request_started=yes" + next_expand + next_hash)
+
         elif update_type == "complete-service" and user_is_server:
+            # Ending service (making as done)
+
             req.complete_service()
             return redirect(next_page + "?request_completed=yes" + next_expand + next_hash)
+
         elif update_type == "no-show" and user_is_server:
+            # Mark as no show
+
             req.no_show()
             return redirect(next_page + "?request_noshow=yes" + next_hash)
+
         elif update_type == "could-not-see" and user_is_server:
+            # Could not see this student
+
             req.could_not_see()
             email_success = req.send_notification_email("uchicago-cs/emails/could-not-see.txt")
             if email_success:
-                return redirect(next_page + "?request_couldnotsee=yes" + next_hash)
+                return redirect(next_page + "?request_couldnotsee=yes&email=success" + next_hash)
             else:
-                return redirect(next_page + "?request_couldnotsee=yes_noemail" + next_hash)
-            return redirect(next_page + "?request_couldnotsee=yes")
+                return redirect(next_page + "?request_couldnotsee=yes&email=fail" + next_hash)
+
+        elif update_type in ("running-late", "invalid-zoom-link", "not-in-zoom") and user_is_server:
+            # Send a notification e-mail
+
+            email_success = req.send_notification_email("uchicago-cs/emails/{}.txt".format(update_type), cc_users=[request.user], update=True)
+            if email_success:
+                return redirect(next_page + "?email=success" + next_hash)
+            else:
+                return redirect(next_page + "?email=fail" + next_hash)
+
         elif update_type is not None:
             return redirect("/")
 

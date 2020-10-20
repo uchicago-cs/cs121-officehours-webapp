@@ -1,5 +1,25 @@
 {% load bootstrap4 %}
 
+<div class="modal fade" id="confirm-action-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Are you sure?</h5>
+            </div>
+
+            <div class="modal-body" id="confirm-msg">
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Go Back</button>
+                <a href="#" id="confirm-action-btn" class="btn btn-danger danger">Yes, do it</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {% if tab_active %}
   <div id="{{tab_id}}" class="tab-pane fade show active">
 {% else %}
@@ -71,95 +91,89 @@
   </div>
 
 
-      {% if req.is_pending %}
+
   <div class="row">
-    <div class="col-sm text-left">
-          <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="scheduleform" method="post" class="form-inline">
-         {% csrf_token %}
-         <input type="hidden" name="update-type" value="schedule"/>
-         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
-         <input type="hidden" name="next-hash" id="next-hash" value="scheduled"/>
-
-         <select name="slot" class="form-control">
-             {% for slot in req.ordered_slots %}
-                 <option value="{{slot.pk}}">{{ slot }}</option>
-             {% endfor %}
-         </select>
-         {% buttons %}
-         <button type="submit" class="btn btn-primary">
-        Schedule
-        </button>
-         {% endbuttons %}
-         </form>
-    </div>
-    <div class="col-sm text-right">
-        <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="couldnotseeform" method="post">
-         {% csrf_token %}
-         <input type="hidden" name="update-type" value="could-not-see"/>
-
-         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
-
-         {% buttons %}
-         <button type="submit" class="btn btn-danger">
-         Could not see
-        </button>
-         {% endbuttons %}
-         </form>
-    </div>
-  </div>
-
-      {% endif %}
-
-     {% if req.is_scheduled or req.is_inprogress %}
-  <div class="row">
+    <!-- LEFT FORM -->
     <div class="col-sm text-left">
 
-          <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="scheduleform" method="post" class="form-inline">
-         {% csrf_token %}
-          {% if req.is_scheduled %}
-         <input type="hidden" name="update-type" value="start-service"/>
-         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
-         <input type="hidden" name="next-hash" id="next-hash" value="in-progress"/>
-          {% elif req.is_inprogress %}
-         <input type="hidden" name="update-type" value="complete-service"/>
-         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
-         <input type="hidden" name="next-hash" id="next-hash" value="completed"/>
-          {% endif %}
+        {% if req.is_pending %}
+             <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="scheduleform_{{ req.pk }}" method="post" class="form-inline">
+             {% csrf_token %}
+             <input type="hidden" name="update-type" value="schedule"/>
+             <input type="hidden" name="next-page" id="schedule-next-page_{{ req.pk }}" value="{% url 'requests-today' course_offering.url_slug %}"/>
+             <input type="hidden" name="next-hash" id="schedule-next-hash_{{ req.pk }}" value="scheduled"/>
 
-
-         {% buttons %}
-         <button type="submit" class="btn btn-primary">
-          {% if req.is_scheduled %}
-         Claim this request
-          {% elif req.is_inprogress %}
-         Mark as Done
-          {% endif %}
-        </button>
-         {% endbuttons %}
-         </form>
-         </div>
-     {% if req.is_scheduled or req.is_inprogress %}
-
-    <div class="col-sm text-right">
-
-        <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="noshowform" method="post">
-         {% csrf_token %}
-         <input type="hidden" name="update-type" value="no-show"/>
-
-         <input type="hidden" name="next-page" id="next-page" value="{% url 'requests-today' course_offering.url_slug %}"/>
-
-         {% buttons %}
-         <button type="submit" class="btn btn-danger">
-         No Show
-        </button>
-         {% endbuttons %}
-         </form>
+             <select name="slot" class="form-control">
+                 {% for slot in req.ordered_slots %}
+                     <option value="{{slot.pk}}">{{ slot }}</option>
+                 {% endfor %}
+             </select>
+             {% buttons %}
+             <button type="submit" class="btn btn-primary">
+            Schedule
+            </button>
+             {% endbuttons %}
+             </form>
+        {% elif req.is_scheduled %}
+            <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="claimform_{{ req.pk }}" method="post" class="form-inline">
+                {% csrf_token %}
+                    <input type="hidden" name="update-type" value="start-service"/>
+                    <input type="hidden" name="next-page" id="claim-next-page_{{ req.pk }}" value="{% url 'requests-today' course_offering.url_slug %}"/>
+                    <input type="hidden" name="next-hash" id="claim-next-hash_{{ req.pk }}" value="in-progress"/>
+                {% buttons %}
+                    <button type="submit" class="btn btn-primary">Claim this request</button>
+                {% endbuttons %}
+            </form>
+        {% elif req.is_inprogress %}
+            <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="doneform_{{ req.pk }}" method="post" class="form-inline">
+                {% csrf_token %}
+                    <input type="hidden" name="update-type" value="complete-service"/>
+                    <input type="hidden" name="next-page" id="done-next-page_{{ req.pk }}" value="{% url 'requests-today' course_offering.url_slug %}"/>
+                    <input type="hidden" name="next-hash" id="done-next-hash_{{ req.pk }}" value="completed"/>
+                {% buttons %}
+                    <button type="submit" class="btn btn-primary">Mark as Done</button>
+                {% endbuttons %}
+            </form>
+        {% endif %}
     </div>
-      {% endif %}
-  </div>
-     {% endif %}
+    <div class="col-sm text-right">
+        <!-- RIGHT FORM -->
+        {% if req.is_pending or req.is_scheduled or req.is_inprogress %}
+        <form action="{% url 'request-detail' req.course_offering.url_slug req.pk %}" id="actionform_{{ req.pk }}" method="post" class="form-inline float-sm-right">
+            {% csrf_token %}
+            <input type="hidden" name="confirm" id="action-confirm_{{ req.pk }}"/>
+            <input type="hidden" name="next-page" id="action-next-page_{{ req.pk }}" value="{% url 'requests-today' course_offering.url_slug %}"/>
+            {% if req.is_scheduled %}
+            <input type="hidden" name="next-hash" id="action-next-page_{{ req.pk }}" value="scheduled"/>
+            {% elif req.is_inprogress %}
+            <input type="hidden" name="next-hash" id="action-next-page_{{ req.pk }}" value="in-progress"/>
+            {% endif %}
 
-      </div>
+            <select name="update-type" id="update-type_{{ req.pk }}" class="form-control">
+                <option selected disabled value="none">-- Select an action --</option>
+                <optgroup label="Mark as...">
+                    {% if not req.is_pending %}
+                    <option value="complete-service">Done</option>
+                    <option value="no-show">No Show</option>
+                    {% endif %}
+                    <option value="could-not-see">Could Not Be Seen</option>
+                </optgroup>
+                {% if not req.is_pending %}
+                <optgroup label="Send notification...">
+                    <option value="running-late">Running late</option>
+                    <option value="invalid-zoom-link">Zoom link does not work</option>
+                    <option value="not-in-zoom">Not in Zoom meeting</option>
+                </optgroup>
+                {% endif %}
+            </select>
+            {% buttons %}
+                <input type="button" value="Apply" data-id="{{ req.pk }}" data-target="#confirm-action" class="btn btn-success applyBtn" />
+            {% endbuttons %}
+        </form>
+        {% endif %}
+    </div>
+  </div>
+  </div>
     </div>
   </div>
     {% endfor %}

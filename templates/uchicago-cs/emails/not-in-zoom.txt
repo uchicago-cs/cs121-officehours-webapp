@@ -1,0 +1,5 @@
+Greetings from the {{request.course_offering.catalog}} Office Hours.
+
+This is a courtesy e-mail to let you know that we tried to join the Zoom meeting you provided ({{request.zoom_url}}) but you were either not in the meeting, or you did not let us in from the meeting's waiting room. Please reply-all to this e-mail to let us know when you are in your Zoom meeting, but please note that you will be marked as a no-show if we don't hear back from you within the next ten minutes.
+
+If you are not planning to attend office hours after all, please cancel your request at https://cs121-officehours.cs.uchicago.edu/. Cancelling a request will not affect your standing in future requests and, once you cancel your request, you will be allowed to make another request for the same day.

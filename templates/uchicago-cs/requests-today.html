@@ -1,6 +1,67 @@
 {% extends "uchicago-cs/base.html" %}
 {% load bootstrap4 %}
 
+{% block extra_head %}
+<script>
+confirmation_msgs = {
+    "no-show":
+        `<p>You are going to mark this request as a no-show.</p>
+         <p>Note: the student does not receive any e-mail notification, but the request will no longer appear as pending or active on their end.
+            They will be able to make a new request.</p>
+         <p>Are you sure?</p>`,
+    "complete-service":
+        `<p>You are going to mark this request as done.</p>
+         <p>Note: the student does not receive any e-mail notification, but the request will no longer appear as pending or active on their end.
+            They will be able to make a new request.</p>
+         <p>Are you sure?</p>`,
+    "could-not-see":
+        `<p>You are going to mark this request as a request we were unable to get to. The student will receive an e-mail notification about this,
+            and will be informed that their next request will be prioritized.</p>
+         <p>Are you sure?</p>`,
+    "running-late":
+        `<p>You are going to send an e-mail notification to the student to let them know you are running late. You will be CC'd on the e-mail,
+            and the student may reply to this e-mail.</p>
+         <p>Are you sure?</p>`,
+    "invalid-zoom-link":
+        `<p>You are going to send an e-mail notification to the student to let them know that their Zoom link doesn't work. You will be CC'd on the e-mail,
+            and the student may reply to this e-mail.</p>
+         <p>Are you sure?</p>`,
+    "not-in-zoom":
+        `<p>You are going to send an e-mail notification to the student to let them know you tried to access their Zoom meeting, but they were either not
+            there or they did not let you in from the waiting room. You will be CC'd on the e-mail,
+            and the student may reply to this e-mail.</p>
+         <p>Are you sure?</p>`,
+
+}
+
+    $(document).on("click", ".applyBtn", function() {
+        var req_pk = $(this).data('id');
+        var actionform = '#actionform_' + req_pk;
+        var updateselect = '#update-type_' + req_pk;
+        var update_type = $(updateselect).val();
+
+        if (update_type == null) {
+            window.alert("Please pick an action!");
+            return;
+        }
+
+        if (!(update_type in confirmation_msgs)) {
+            window.alert("Unsupported action.");
+            return;
+        }
+
+        $('#confirm-msg').html(confirmation_msgs[update_type]);
+
+        $('#confirm-action-btn').click(function(){
+            $(actionform + ' #confirm').val("yes");
+            $(actionform).submit();
+        });
+
+        $('#confirm-action-modal').modal("show");
+    });
+</script>
+{% endblock %}
+
 {% block content %}
 
     <h2>Today's Requests</h2>

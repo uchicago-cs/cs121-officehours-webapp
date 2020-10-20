@@ -355,7 +355,7 @@ class Request(models.Model):
         self.actual_slot = slot
         self.save()
 
-    def send_notification_email(self, template, cc_users=None, dry_run=False):
+    def send_notification_email(self, template, cc_users=None, dry_run=False, update=False):
         t = get_template(template)
         body = t.render({"request": self})
 
@@ -375,8 +375,13 @@ class Request(models.Model):
         else:
             cc = []
 
+        if update:
+            subject = "An update on your {} office hours request".format(self.course_offering.catalog)
+        else:
+            subject = 'Your {} Office Hours Request'.format(self.course_offering.catalog)
+
         email = EmailMessage(
-            'Your {} Office Hours Request'.format(self.course_offering.catalog),
+            subject,
             body,
             'CS 121 Office Hours <{}>'.format(settings.CONTACT_EMAIL),
             [recipient],
