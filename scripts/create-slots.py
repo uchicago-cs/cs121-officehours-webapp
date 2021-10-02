@@ -15,17 +15,28 @@ import officehours.models as models
 @click.option('--start-time', type=click.DateTime(formats=["%H:%M"]))
 @click.option('--end-time', type=click.DateTime(formats=["%H:%M"]))
 @click.option('--slot-minutes', type=int)
+@click.option('--format',  type=click.Choice(['in-person', 'online']), required=True)
+@click.option('--room',  type=str)
 @click.option('--update-db', '-u', is_flag=True)
 @click.option('--yes', '-y', is_flag=True)
-def cmd(date, start_time, end_time, slot_minutes, update_db, yes):
+def cmd(date, start_time, end_time, slot_minutes, format, room, update_db, yes):
     start_time = datetime.datetime.combine(date, start_time.time())
     end_time = datetime.datetime.combine(date, end_time.time())
     slot_duration = datetime.timedelta(minutes=slot_minutes)
 
+    if format == "in-person":
+        if room is not None:
+            print("ERROR: You must specify a room when creating in-person slots.")
+            sys.exit(1)
+        format = models.Slot.SLOT_INPERSON
+    elif format == "online":
+        if room is not None:
+            print("ERROR: You cannot provide a room for online slots.")
+            sys.exit(1)
+        format = models.Slot.SLOT_ONLINE
+
     # TODO: Hard-coded
-    cs121 = models.CourseOffering.objects.get(url_slug="cmsc12100-aut-20")
-
-
+    cs121 = models.CourseOffering.objects.get(url_slug="cmsc12100-aut-21")
 
     num_slots = (end_time - start_time) / slot_duration
 
@@ -47,7 +58,8 @@ def cmd(date, start_time, end_time, slot_minutes, update_db, yes):
         slot_exists = models.Slot.objects.filter(course_offering=cs121,
                                                  date=slot_start.date(),
                                                  start_time=slot_start.time(),
-                                                 end_time=slot_end.time()
+                                                 end_time=slot_end.time(),
+                                                 format=format
                                                 )
 
         if slot_exists:
@@ -57,8 +69,8 @@ def cmd(date, start_time, end_time, slot_minutes, update_db, yes):
                                date=slot_start.date(),
                                start_time=slot_start.time(),
                                end_time=slot_end.time(),
-                               room=None,                       # TODO: Hard-coded
-                               format=models.Slot.SLOT_ONLINE)  # TODO: Hard-coded
+                               room=None,  # TODO: Hard-coded
+                               format=format)
             slots.append(slot)
             exists_str = ""
 

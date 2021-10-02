@@ -134,7 +134,10 @@ class Slot(models.Model):
                                                     (SLOT_INPERSON, "In-person")])
 
     def __str__(self):
-        return "{} ({})".format(self.date, self.interval)
+        slot_str = "{} ({})".format(self.date, self.interval)
+        if self.format == Slot.SLOT_ONLINE:
+            slot_str += " [Online]"
+        return slot_str
 
     @property
     def interval(self):

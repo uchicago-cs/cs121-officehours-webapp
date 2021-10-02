@@ -1,9 +1,16 @@
 {% extends "uchicago-cs/base.html" %}
 {% load bootstrap4 %}
+{% load static %}
 
 {% block extra_head %}
 {{ form.media }}
+    <script src="{% static 'uchicago-cs/request-form.js' %}"></script>
 
+    <script>
+        $(document).ready(function(){
+            setup_zoom_input();
+        });
+    </script>
 {% endblock %}
 
 

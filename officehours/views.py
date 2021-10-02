@@ -13,9 +13,19 @@ from officehours.tables import RequestTable
 from django.utils import timezone
 
 
+def choices_from_slots(slots):
+    choices = []
+    for s in slots:
+        slot_str = "{}".format(s.interval)
+        if s.format == Slot.SLOT_ONLINE:
+            slot_str += " [Online]"
+        choices.append((s.pk, slot_str))
+    return choices
+
+
 def index(request):
     if request.user.is_authenticated:
-        return redirect(reverse('my-request', args=["cmsc12100-aut-20"]))
+        return redirect(reverse('my-request', args=["cmsc12100-aut-21"]))
 
     context = {}
 
@@ -41,12 +51,6 @@ def my_request(request, course_offering_slug):
 
     active_req = request.user.get_active_request(course_offering)
     form = RequestForm(request.POST or None)
-
-    # TODO: At some point, we will resume using this app for in-person office hours
-    # or even a combination of in-person and remote. Instead of unconditionally making
-    # the Zoom URL field required, the form frontend should dynamically show that field
-    # if the user select any remote slots.
-    form.fields["zoom_url"].required = True
 
     if request.POST and active_req is None:
         # Check if this is the creation of a new request
@@ -87,10 +91,10 @@ def my_request(request, course_offering_slug):
         context["date"] = day
 
         # Are there slots available on the selected day?
-        slots = course_offering.slot_set.filter(date=day).order_by("start_time")
+        slots = course_offering.slot_set.filter(date=day, end_time__gte=timezone.localtime(timezone.now())).order_by("start_time")
 
         if len(slots) > 0:
-            form.fields["slots"].choices = [(s.pk, "{}".format(s.interval)) for s in slots]
+            form.fields["slots"].choices = choices_from_slots(slots)
 
             context["form"] = form
             context["button_label"] = "Submit"
@@ -220,8 +224,8 @@ def request_detail(request, course_offering_slug, request_id):
                 return redirect(reverse('request-detail', args=[course_offering_slug, req.pk]))
 
     # We are viewing or editing an existing request
-    slots = course_offering.slot_set.filter(date=req.date)
-    form.fields["slots"].choices = [(s.pk, "{}".format(s.interval)) for s in slots]
+    slots = course_offering.slot_set.filter(date=req.date, end_time__gte=timezone.localtime(timezone.now())).order_by("start_time")
+    form.fields["slots"].choices = choices_from_slots(slots)
     context["form_action"] = reverse('request-detail', args=[course_offering_slug, req.pk])
     context["button_label"] = "Update"
 
@@ -230,6 +234,9 @@ def request_detail(request, course_offering_slug, request_id):
 
 
 def requests_today(request, course_offering_slug):
+    if request.GET.get("request_scheduled") == "yes_noemail":
+        messages.error(request, 'WARNING: The request has been scheduled, but an e-mail notification could not be sent.')
+
     course_offering = get_object_or_404(CourseOffering, url_slug=course_offering_slug)
     user_is_server = course_offering.is_server(request.user)
 
