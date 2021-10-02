@@ -145,21 +145,9 @@ class Slot(models.Model):
         end = self.end_time.strftime("%I:%M %p")
         return "{} - {}".format(start, end)
 
-    @staticmethod
-    def get_current_slot(course_offering):
-        now = timezone.localtime(timezone.now())
-
-        slots = Slot.objects.filter(course_offering = course_offering,
-                                    date=now.date(),
-                                    start_time__lte = now.time(),
-                                    end_time__gt = now.time())
-
-        assert len(slots) <= 1
-
-        if len(slots) == 1:
-            return slots[0]
-        else:
-            return None
+    @property
+    def online(self):
+        return self.format == Slot.SLOT_ONLINE
 
     @staticmethod
     def get_next_slots(course_offering, hours):
@@ -256,15 +244,23 @@ class Request(models.Model):
 
     @property
     def ordered_slots(self):
-        return self.slots.all().order_by("start_time")
+        return self.slots.all().order_by("start_time", "-format")
 
     @property
-    def next_available_slot(self):
+    def next_available_slots(self):
         now = timezone.localtime(timezone.now())
 
-        next_slot = self.slots.filter(end_time__gt = now.time()).order_by("start_time").first()
+        next_slot = self.slots.filter(end_time__gt=now.time()).order_by("start_time").first()
 
-        return next_slot
+        if next_slot:
+            # There could be other slots (e.g., with a different format) with the same times
+            next_slots = self.slots.filter(date=next_slot.date,
+                                           start_time=next_slot.start_time,
+                                           end_time=next_slot.end_time)
+        else:
+            next_slots = next_slot
+
+        return next_slots
 
     @property
     def priority(self):
@@ -308,13 +304,15 @@ class Request(models.Model):
         """Produces string summary displayed on 'accordions' in Today's Request"""
 
         created_at = timezone.localtime(self.created_at)
+        now = timezone.localtime(timezone.now())
 
         next_str = ""
         if self.state == Request.STATE_PENDING:
-            next_slot = self.next_available_slot
+            next_slots = self.next_available_slots
 
-            if next_slot is not None:
-                if next_slot == Slot.get_current_slot(self.course_offering):
+            if next_slots is not None:
+                next_slot = next_slots.first()
+                if next_slot.date == now.date() and next_slot.start_time <= now.time() <= next_slot.end_time:
                     next_str = "(Available NOW)"
                 else:
                     next_str = "(Earliest availability: {})".format(next_slot.interval)

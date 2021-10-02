@@ -91,7 +91,7 @@ def my_request(request, course_offering_slug):
         context["date"] = day
 
         # Are there slots available on the selected day?
-        slots = course_offering.slot_set.filter(date=day, end_time__gte=timezone.localtime(timezone.now())).order_by("start_time")
+        slots = course_offering.slot_set.filter(date=day, end_time__gte=timezone.localtime(timezone.now())).order_by("start_time", "-format")
 
         if len(slots) > 0:
             form.fields["slots"].choices = choices_from_slots(slots)
@@ -224,7 +224,7 @@ def request_detail(request, course_offering_slug, request_id):
                 return redirect(reverse('request-detail', args=[course_offering_slug, req.pk]))
 
     # We are viewing or editing an existing request
-    slots = course_offering.slot_set.filter(date=req.date, end_time__gte=timezone.localtime(timezone.now())).order_by("start_time")
+    slots = course_offering.slot_set.filter(date=req.date, end_time__gte=timezone.localtime(timezone.now())).order_by("start_time", "-format")
     form.fields["slots"].choices = choices_from_slots(slots)
     context["form_action"] = reverse('request-detail', args=[course_offering_slug, req.pk])
     context["button_label"] = "Update"
@@ -268,10 +268,10 @@ def requests_today(request, course_offering_slug):
     today_requests = course_offering.request_set.filter(date=day)
 
     requests_pending_soon =  sorted(today_requests.filter(state=Request.STATE_PENDING, slots__in=upcoming_slots).distinct().order_by("created_at"),
-                                    key=lambda x: x.next_available_slot.start_time if x.next_available_slot else time(23, 59))
+                                    key=lambda x: x.next_available_slots.first().start_time if x.next_available_slots else time(23, 59))
 
     requests_pending_today = sorted(today_requests.filter(state=Request.STATE_PENDING).order_by("created_at"),
-                                    key=lambda x: x.next_available_slot.start_time if x.next_available_slot else time(23, 59))
+                                    key=lambda x: x.next_available_slots.first().start_time if x.next_available_slots else time(23, 59))
 
 
     context["requests_pending_soon"] = requests_pending_soon
@@ -330,14 +330,14 @@ def status(request, course_offering_slug):
     context["date"] = day
 
     # Are there slots available on the selected day?
-    slots = course_offering.slot_set.filter(date=day).order_by("start_time")
+    slots = course_offering.slot_set.filter(date=day).order_by("start_time", "-format")
 
     if len(slots) == 0:
         context["slot_requests"] = None
     else:
         slot_requests = OrderedDict()
         for slot in slots:
-            slot_requests[slot] ={"pending":0, "scheduled":0, "inprogress":0, "completed": 0}
+            slot_requests[slot] ={"num_requests":0, "scheduled":0, "inprogress":0, "completed": 0}
 
         today_requests = course_offering.request_set.filter(date=day)
 
@@ -345,9 +345,9 @@ def status(request, course_offering_slug):
 
         for req in today_requests:
             if req.state == Request.STATE_PENDING:
-                next_available_slot = req.next_available_slot
-                if next_available_slot is not None:
-                    slot_requests[next_available_slot]["pending"] += 1
+                if req.next_available_slots is not None:
+                    for slot in req.slots.all():
+                        slot_requests[slot]["num_requests"] += 1
                     total_pending += 1
             elif req.state == Request.STATE_SCHEDULED:
                 req_slot = req.actual_slot

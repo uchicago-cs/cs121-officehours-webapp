@@ -20,11 +20,19 @@ There are no office hours on this date.
 
     <p>There are currently <strong>{{ total_pending }}</strong> pending requests for office hours.</p>
 
-<table class="table">
+    <div class="alert alert-secondary" role="alert">
+        <strong>Note</strong>: The "# Requests" column represents the number of pending requests that included
+        that time slot in the request. It does not represent the number of students who are waiting to be seen
+        at exactly that time, so you should treat it as an indirect measure of how busy a given time slot
+        might be.
+    </div>
+
+
+    <table class="table">
   <thead>
     <tr>
       <th scope="col">Slot</th>
-      <th scope="col">Pending</th>
+      <th scope="col"># Requests</th>
       <th scope="col">Scheduled</th>
       <th scope="col">In Progress</th>
       <th scope="col">Completed</th>
@@ -33,8 +41,10 @@ There are no office hours on this date.
   <tbody>
     {% for slot, counts in slot_requests.items %}
         <tr>
-          <th scope="row">{{ slot.interval }}</th>
-          <td>{{counts.pending}}</td>
+            <th scope="row">{{ slot.interval }}
+                {% if slot.online %}[Online]{% endif %}
+            </th>
+          <td>{{counts.num_requests}}</td>
           <td>{{counts.scheduled}}</td>
           <td>{{counts.inprogress}}</td>
           <td>{{counts.completed}}</td>
@@ -43,11 +53,6 @@ There are no office hours on this date.
   </tbody>
 </table>
 
-<div class="alert alert-secondary" role="alert">
-<strong>Note</strong>: The number of "Pending" requests for a given time slot is the number of requests that could be fulfilled
-at that time <em>or later</em>. In other words, a request is counted in the earliest slot that it can be fulfilled at (which
-can change as the day progresses, if someone is not scheduled for their earliest slot)
-</div>
 
 {% endif %}
 
