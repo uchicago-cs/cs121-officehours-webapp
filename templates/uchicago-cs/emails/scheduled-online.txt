@@ -4,6 +4,6 @@ We wanted to let you know that we have scheduled you to attend office hours at {
 
 As a reminder, you provided the following Zoom URL: {{request.zoom_url}}
 
-Please make sure this meeting is open during your scheduled time. An instructor/TA will join the meeting sometime during your scheduled slot.
+Please make sure this meeting is open during your scheduled time. An instructor/TA will join the meeting sometime during your scheduled slot (please note that they may not join right at the start of your scheduled slot).
 
 If you are not planning to attend office hours after all, please cancel your request at https://cs121-officehours.cs.uchicago.edu/. Cancelling a request will not affect your standing in future requests and, once you cancel your request, you will be allowed to make another request for the same day.
