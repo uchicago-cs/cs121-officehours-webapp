@@ -25,7 +25,7 @@ def cmd(date, start_time, end_time, slot_minutes, format, room, update_db, yes):
     slot_duration = datetime.timedelta(minutes=slot_minutes)
 
     if format == "in-person":
-        if room is not None:
+        if room is None:
             print("ERROR: You must specify a room when creating in-person slots.")
             sys.exit(1)
         format = models.Slot.SLOT_INPERSON
