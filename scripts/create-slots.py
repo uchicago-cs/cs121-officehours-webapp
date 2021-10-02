@@ -69,7 +69,7 @@ def cmd(date, start_time, end_time, slot_minutes, format, room, update_db, yes):
                                date=slot_start.date(),
                                start_time=slot_start.time(),
                                end_time=slot_end.time(),
-                               room=None,  # TODO: Hard-coded
+                               room=room,
                                format=format)
             slots.append(slot)
             exists_str = ""
