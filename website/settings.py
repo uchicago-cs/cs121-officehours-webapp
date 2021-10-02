@@ -110,7 +110,7 @@ DATABASES = {
 }
 
 
-EMAIL_HOST = 'smtp.cs.uchicago.edu'
+EMAIL_HOST = os.getenv('DJANGO_SMTP_SERVER', 'Please set DJANGO_SMTP_SERVER environment variable!')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_USER', 'Please set DJANGO_EMAIL_USER environment variable!')
