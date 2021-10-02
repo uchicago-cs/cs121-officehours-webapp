@@ -19,7 +19,7 @@ You can also add a remote for pushing directly to production, but doing so is un
 Deploying to staging
 --------------------
 
-    heroku push heroku master
+    git push heroku master
     
 Applying migrations
 -------------------
