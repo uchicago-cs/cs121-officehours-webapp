@@ -91,7 +91,12 @@ def my_request(request, course_offering_slug):
         context["date"] = day
 
         # Are there slots available on the selected day?
-        slots = course_offering.slot_set.filter(date=day, end_time__gte=timezone.localtime(timezone.now())).order_by("start_time", "-format")
+        if force_date is not None:
+            slots = course_offering.slot_set.filter(date=day)
+        else:
+            slots = course_offering.slot_set.filter(date=day, end_time__gte=timezone.localtime(timezone.now()))
+
+        slots = slots.order_by("start_time", "-format")
 
         if len(slots) > 0:
             form.fields["slots"].choices = choices_from_slots(slots)
