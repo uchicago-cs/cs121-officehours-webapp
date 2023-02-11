@@ -11,4 +11,4 @@ whitenoise==5.2.0
 beautifulsoup4==4.9.3
 html5lib==1.1
 click==7.1.2
-ipython==7.31.1
+ipython==8.10.0
