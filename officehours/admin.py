@@ -40,7 +40,8 @@ class CourseOfferingAdmin(admin.ModelAdmin):
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):
-    pass
+    list_filter = ['course_offering', 'format']
+    #pass
 
 @admin.register(ActiveRequest)
 class ActiveRequestAdmin(admin.ModelAdmin):
